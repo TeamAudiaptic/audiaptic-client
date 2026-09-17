@@ -53,6 +53,11 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          if [ ! -f CHANGELOG.yml ]; then
+            echo "No changelog file - nothing to commit."
+            exit 0
+          fi
+
           git add CHANGELOG.yml
 
           if git diff --cached --quiet; then
