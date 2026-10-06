@@ -1,11 +1,25 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+
+import { ActiveEventList, EventLog } from "@/components/EventDebugView";
+import { useEventProcessor } from "@/hooks/useEventProcessor";
 
 export default function Index() {
+  const { active, log, isJoined, join, leave } = useEventProcessor();
+
   return (
-    <View className="flex-1 items-center justify-center bg-teal-500">
-      <Text className="text-3xl font-black text-white tracking-widest">
-        TAILWIND WORKS! 🎉
-      </Text>
+    <View className="flex-1 items-center gap-6 bg-teal-500 px-4 pb-8 pt-20">
+      <Pressable
+        accessibilityRole="button"
+        onPress={isJoined ? leave : join}
+        className="rounded-full bg-white px-8 py-4 active:opacity-70"
+      >
+        <Text className="text-lg font-bold text-teal-600">
+          {isJoined ? "Leave Event" : "Join Event"}
+        </Text>
+      </Pressable>
+
+      <ActiveEventList active={active} />
+      <EventLog entries={log} />
     </View>
   );
 }
