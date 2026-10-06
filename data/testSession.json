@@ -1,0 +1,188 @@
+[
+  {
+    "schemaVersion": "1.0",
+    "eventId": "mixed-types-haptic-1",
+    "sequence": 1,
+    "type": "haptic",
+    "sentTimestamp": 1791244800500,
+    "execTimestamp": 1791244801000,
+    "payload": {
+      "intensity": 0.75,
+      "sharpness": 0.4,
+      "durationMs": 600,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "mixed-types-torch-1",
+    "sequence": 2,
+    "type": "torch",
+    "sentTimestamp": 1791244800500,
+    "execTimestamp": 1791244801000,
+    "payload": {
+      "durationMs": 600,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "mixed-types-color-1",
+    "sequence": 3,
+    "type": "color",
+    "sentTimestamp": 1791244800500,
+    "execTimestamp": 1791244801000,
+    "payload": {
+      "color": "#0057FF",
+      "durationMs": 600,
+      "transitionMs": 0
+    }
+  },
+
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-haptic-low-seq",
+    "sequence": 4,
+    "type": "haptic",
+    "sentTimestamp": 1791244802500,
+    "execTimestamp": 1791244803000,
+    "payload": {
+      "intensity": 0.3,
+      "sharpness": 0.2,
+      "durationMs": 1000,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-haptic-high-seq-wins",
+    "sequence": 5,
+    "type": "haptic",
+    "sentTimestamp": 1791244802500,
+    "execTimestamp": 1791244803000,
+    "payload": {
+      "intensity": 1.0,
+      "sharpness": 0.9,
+      "durationMs": 500,
+      "transitionMs": 0
+    }
+  },
+
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-color-high-seq-wins-listed-first",
+    "sequence": 7,
+    "type": "color",
+    "sentTimestamp": 1791244804500,
+    "execTimestamp": 1791244805000,
+    "payload": {
+      "color": "#00FF00",
+      "durationMs": 1500,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-color-low-seq-listed-second",
+    "sequence": 6,
+    "type": "color",
+    "sentTimestamp": 1791244804500,
+    "execTimestamp": 1791244805000,
+    "payload": {
+      "color": "#FF0000",
+      "durationMs": 1500,
+      "transitionMs": 0
+    }
+  },
+
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-torch-low-seq",
+    "sequence": 8,
+    "type": "torch",
+    "sentTimestamp": 1791244806500,
+    "execTimestamp": 1791244807000,
+    "payload": {
+      "durationMs": 1000,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-torch-high-seq-wins",
+    "sequence": 9,
+    "type": "torch",
+    "sentTimestamp": 1791244806500,
+    "execTimestamp": 1791244807000,
+    "payload": {
+      "durationMs": 250,
+      "transitionMs": 0
+    }
+  },
+
+  {
+    "schemaVersion": "1.0",
+    "eventId": "combined-haptic-low-seq",
+    "sequence": 10,
+    "type": "haptic",
+    "sentTimestamp": 1791244808500,
+    "execTimestamp": 1791244809000,
+    "payload": {
+      "intensity": 0.4,
+      "durationMs": 800,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "combined-color-low-seq",
+    "sequence": 11,
+    "type": "color",
+    "sentTimestamp": 1791244808500,
+    "execTimestamp": 1791244809000,
+    "payload": {
+      "color": "#FFFFFF",
+      "durationMs": 800,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "combined-haptic-high-seq-wins",
+    "sequence": 12,
+    "type": "haptic",
+    "sentTimestamp": 1791244808500,
+    "execTimestamp": 1791244809000,
+    "payload": {
+      "intensity": 0.9,
+      "sharpness": 0.6,
+      "durationMs": 800,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "combined-color-high-seq-wins",
+    "sequence": 13,
+    "type": "color",
+    "sentTimestamp": 1791244808500,
+    "execTimestamp": 1791244809000,
+    "payload": {
+      "color": "#FF00AA",
+      "durationMs": 800,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "combined-torch",
+    "sequence": 14,
+    "type": "torch",
+    "sentTimestamp": 1791244808500,
+    "execTimestamp": 1791244809000,
+    "payload": {
+      "durationMs": 800,
+      "transitionMs": 0
+    }
+  }
+]
