@@ -15,7 +15,7 @@ function describe(event: SessionEvent | null): string {
   const details =
     event.type === "haptic" ? `intensity ${event.payload.intensity}`
     : event.type === "color" ? event.payload.color
-    : "on";
+    : `intensity ${event.payload.intensity ?? 1.0}${event.payload.transitionMs ? ` (${event.payload.transitionMs}ms fade)` : ""}`;
 
   return `${event.eventId} (seq ${event.sequence}) ${details}, ${event.payload.durationMs} ms`;
 }
