@@ -27,15 +27,18 @@ export default function Index() {
       className="flex-1 gap-2 px-5"
       style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 72 }}
     >
-      <View className="items-end">
-        <IconButton
-          icon="menu"
-          iconColor="white"
-          size={36}
-          accessibilityLabel={settingsOpen ? "Close settings" : "Open settings"}
-          onPress={() => setSettingsOpen((open) => !open)}
-        />
-      </View>
+      {/* The menu only appears once the user has entered the session. */}
+      {isJoined && (
+        <View className="items-end">
+          <IconButton
+            icon="menu"
+            iconColor="white"
+            size={36}
+            accessibilityLabel={settingsOpen ? "Close settings" : "Open settings"}
+            onPress={() => setSettingsOpen((open) => !open)}
+          />
+        </View>
+      )}
 
       <Portal>
         {/* The only way past this dialog is Enter: no Cancel, no tap-outside, no back button. */}
