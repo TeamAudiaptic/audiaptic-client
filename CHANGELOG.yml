@@ -29,3 +29,13 @@ entries:
     emoji: ✨
     label: Feature
     message: Add device torch (flashlight) handling with smooth brightness intensity transitions and on-screen feedback
+- id: 4
+  pr: 28
+  author: dcr8024
+  time: '2026-10-20T22:05:15+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/28
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: The screen background follows the active color event during a session.
