@@ -21,8 +21,9 @@
     "sentTimestamp": 1791244800500,
     "execTimestamp": 1791244801000,
     "payload": {
+      "intensity": 0.8,
       "durationMs": 600,
-      "transitionMs": 0
+      "transitionMs": 200
     }
   },
   {
@@ -103,8 +104,9 @@
     "sentTimestamp": 1791244806500,
     "execTimestamp": 1791244807000,
     "payload": {
+      "intensity": 0.4,
       "durationMs": 1000,
-      "transitionMs": 0
+      "transitionMs": 300
     }
   },
   {
@@ -115,8 +117,9 @@
     "sentTimestamp": 1791244806500,
     "execTimestamp": 1791244807000,
     "payload": {
-      "durationMs": 250,
-      "transitionMs": 0
+      "intensity": 1.0,
+      "durationMs": 500,
+      "transitionMs": 100
     }
   },
 
@@ -181,8 +184,22 @@
     "sentTimestamp": 1791244808500,
     "execTimestamp": 1791244809000,
     "payload": {
+      "intensity": 0.6,
       "durationMs": 800,
-      "transitionMs": 0
+      "transitionMs": 300
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "torch-gradual-fade",
+    "sequence": 15,
+    "type": "torch",
+    "sentTimestamp": 1791244810000,
+    "execTimestamp": 1791244810500,
+    "payload": {
+      "intensity": 1.0,
+      "durationMs": 1500,
+      "transitionMs": 800
     }
   }
 ]

@@ -1,7 +1,9 @@
 import { Pressable, Text, View } from "react-native";
 
 import { ActiveEventList, EventLog } from "@/components/EventDebugView";
+import { TorchController } from "@/components/TorchController";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
+import { useTorchTransition } from "@/hooks/useTorchTransition";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
 
 /** Shown when no color event is playing (Tailwind's teal-500). */
@@ -10,6 +12,7 @@ const DEFAULT_BACKGROUND = "#14B8A6";
 export default function Index() {
   const { active, log, isJoined, join, leave } = useEventProcessor();
   const backgroundColor = getBackgroundColor(active.color) ?? DEFAULT_BACKGROUND;
+  const torchState = useTorchTransition(active.torch, isJoined);
 
   return (
     <View
@@ -26,6 +29,7 @@ export default function Index() {
         </Text>
       </Pressable>
 
+      <TorchController torchState={torchState} />
       <ActiveEventList active={active} />
       <EventLog entries={log} />
     </View>
