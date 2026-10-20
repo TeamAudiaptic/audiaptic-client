@@ -11,7 +11,8 @@
       "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSCameraUsageDescription": "This app requires camera access to enable the flashlight feature."
-      }
+      },
+      "bundleIdentifier": "com.kristeuin.audiaptic"
     },
     "android": {
       "adaptiveIcon": {
