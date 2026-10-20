@@ -19,3 +19,13 @@ entries:
     emoji: 🔧
     label: Maintenance
     message: Added license
+- id: 3
+  pr: 27
+  author: fangkristen
+  time: '2026-10-20T21:01:57+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/27
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Add device torch (flashlight) handling with smooth brightness intensity transitions and on-screen feedback
