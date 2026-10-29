@@ -48,5 +48,6 @@ example
 
 # build output of local native modules (created by `expo run:android` / `run:ios`)
 modules/*/android/build/
+modules/*/android/.gradle/
 modules/*/android/.cxx/
 modules/*/ios/build/
