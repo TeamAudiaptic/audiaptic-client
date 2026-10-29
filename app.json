@@ -25,7 +25,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.VIBRATE"
-      ]
+      ],
+      "package": "com.kristeuin.audiaptic"
     },
     "web": {
       "output": "static",
