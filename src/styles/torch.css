@@ -1,0 +1,7 @@
+/* Hidden camera that drives the flashlight in Expo Go (components/TorchController.tsx). */
+
+@layer components {
+  .torch-hidden-camera {
+    @apply absolute bottom-0 right-0 h-px w-px opacity-0;
+  }
+}

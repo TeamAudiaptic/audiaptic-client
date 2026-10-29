@@ -1,0 +1,31 @@
+/* Loading and camera-permission screens shown before the app (app/_layout.tsx). */
+
+@layer components {
+  .permission-loading {
+    @apply flex-1 items-center justify-center bg-slate-900;
+  }
+
+  .permission-screen {
+    @apply flex-1 items-center justify-center bg-slate-900 px-6;
+  }
+
+  .permission-card {
+    @apply w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl;
+  }
+
+  .permission-title {
+    @apply mb-2 text-center text-xl font-bold text-white;
+  }
+
+  .permission-body {
+    @apply mb-6 text-center text-sm leading-relaxed text-slate-400;
+  }
+
+  .permission-button {
+    @apply w-full rounded-xl bg-teal-500 py-3 active:bg-teal-600;
+  }
+
+  .permission-button-text {
+    @apply text-center text-base font-semibold text-white;
+  }
+}

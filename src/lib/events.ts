@@ -4,25 +4,39 @@
  */
 
 /** One output on the device. Each event type drives exactly one channel. */
-export type Channel = "haptic" | "torch" | "color";
+export type Channel = "haptic" | "torch" | "color" | "image";
 
-export const CHANNELS: Channel[] = ["haptic", "torch", "color"];
+export const CHANNELS: Channel[] = ["haptic", "torch", "color", "image"];
 
-/** Fields every event has, whatever its type (see shared-envelope.mdx). */
-interface EventEnvelope<T extends Channel, P> {
+/**
+ * Fields every event has, whatever its type (see shared-envelope.mdx).
+ *
+ * Timing: if both timestamps are missing, `null` or 0 the event runs as soon
+ * as it arrives. `epochTimestamp` wins when it's in the future; otherwise a
+ * `relativeTimestamp` counts from when the Start event executed.
+ */
+interface BaseEnvelope<T extends string> {
   schemaVersion: "1.0";
   /** Unique within a session; used to drop duplicates. */
   eventId: string;
   /** Increases with every event Max sends. Higher wins a conflict. */
   sequence: number;
   type: T;
-  /** When Max sent the event. */
-  sentTimestamp: number;
-  /** When every device should start the event. */
-  execTimestamp: number;
+  /** When Max sent the event. Optional. */
+  sentTimestamp?: number | null;
+  /** Unix ms at which every device should start the event. Optional. */
+  epochTimestamp?: number | null;
+  /** Ms after the Start event executes at which to start the event. Optional. */
+  relativeTimestamp?: number | null;
+}
+
+interface EventEnvelope<T extends Channel, P> extends BaseEnvelope<T> {
   /** Type-specific settings, shown below. */
   payload: P;
 }
+
+/** Marks the start of the performance; relative timestamps count from it (start.mdx). */
+export type StartEvent = BaseEnvelope<"start">;
 
 export interface HapticPayload {
   /** Strength from 0 to 1. */
@@ -49,6 +63,15 @@ export interface ColorPayload {
   transitionMs?: number;
 }
 
+export interface ImagePayload {
+  /** File name of an asset downloaded on join (see concertAssets.ts). */
+  assetAlias: string;
+  /** Optional; missing or 0 means "until replaced". */
+  durationMs?: number;
+  /** Fade-in time. Optional. */
+  transitionMs?: number;
+}
+
 /**
  * Any event the processor understands. This is a *discriminated union*:
  * checking `event.type === "color"` tells TypeScript the payload is a
@@ -57,29 +80,60 @@ export interface ColorPayload {
 export type SessionEvent =
   | EventEnvelope<"haptic", HapticPayload>
   | EventEnvelope<"torch", TorchPayload>
-  | EventEnvelope<"color", ColorPayload>;
+  | EventEnvelope<"color", ColorPayload>
+  | EventEnvelope<"image", ImagePayload>;
 
-/** When the event stops. A duration of 0 means "until replaced". */
-export function endsAt(event: SessionEvent): number {
+/** Anything the processor accepts: an output event or the Start event. */
+export type IncomingEvent = SessionEvent | StartEvent;
+
+/** When the event stops, given when it started. A missing or 0 duration means "until replaced". */
+export function endsAt(event: SessionEvent, startedAt: number): number {
   const { durationMs } = event.payload;
-  return durationMs === 0 ? Infinity : event.execTimestamp + durationMs;
+  return durationMs ? startedAt + durationMs : Infinity;
+}
+
+/** Optional timestamp fields may be absent, `null` or a number. */
+function isOptionalNumber(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === "number";
+}
+
+/** Checks the envelope fields shared by every event type. */
+function hasEnvelope(value: unknown): value is BaseEnvelope<string> {
+  const event = value as Partial<BaseEnvelope<string>> | null;
+
+  return (
+    typeof event?.eventId === "string" &&
+    typeof event.sequence === "number" &&
+    isOptionalNumber(event.sentTimestamp) &&
+    isOptionalNumber(event.epochTimestamp) &&
+    isOptionalNumber(event.relativeTimestamp)
+  );
 }
 
 /**
- * Quick check that `value` looks like an event the processor can handle.
+ * Quick check that `value` looks like an output event the processor can handle.
  *
  * It only checks the fields the processor depends on; the server does the
  * full validation (ranges, hex colors, ...). As a type guard, a `true` result
  * lets TypeScript treat `value` as a SessionEvent afterwards.
  */
 export function isSessionEvent(value: unknown): value is SessionEvent {
-  const event = value as Partial<SessionEvent> | null;
+  if (!hasEnvelope(value) || !CHANNELS.includes(value.type as Channel)) return false;
 
-  return (
-    CHANNELS.includes(event?.type as Channel) &&
-    typeof event?.eventId === "string" &&
-    typeof event.sequence === "number" &&
-    typeof event.execTimestamp === "number" &&
-    typeof event.payload?.durationMs === "number"
-  );
+  const { payload } = value as Partial<SessionEvent>;
+  if (typeof payload !== "object" || payload === null) return false;
+  // Image is the only type whose duration may be left out.
+  if (value.type === "image") {
+    const image = payload as Partial<ImagePayload>;
+    return typeof image.assetAlias === "string" && isOptionalNumber(image.durationMs);
+  }
+  return typeof payload.durationMs === "number";
+}
+
+export function isStartEvent(value: unknown): value is StartEvent {
+  return hasEnvelope(value) && value.type === "start";
+}
+
+export function isIncomingEvent(value: unknown): value is IncomingEvent {
+  return isSessionEvent(value) || isStartEvent(value);
 }

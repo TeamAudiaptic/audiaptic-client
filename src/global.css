@@ -1,3 +1,10 @@
+/* Component styles, one file per screen or component. @import must come first. */
+@import "./styles/join.css";
+@import "./styles/concert.css";
+@import "./styles/eventLog.css";
+@import "./styles/torch.css";
+@import "./styles/permission.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

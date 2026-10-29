@@ -1,11 +1,19 @@
 [
   {
     "schemaVersion": "1.0",
+    "eventId": "performance-start",
+    "sequence": 0,
+    "type": "start",
+    "sentTimestamp": 1791244800000,
+    "epochTimestamp": 1791244800500
+  },
+  {
+    "schemaVersion": "1.0",
     "eventId": "mixed-types-haptic-1",
     "sequence": 1,
     "type": "haptic",
     "sentTimestamp": 1791244800500,
-    "execTimestamp": 1791244801000,
+    "relativeTimestamp": 500,
     "payload": {
       "intensity": 0.75,
       "sharpness": 0.4,
@@ -19,7 +27,7 @@
     "sequence": 2,
     "type": "torch",
     "sentTimestamp": 1791244800500,
-    "execTimestamp": 1791244801000,
+    "relativeTimestamp": 500,
     "payload": {
       "intensity": 0.8,
       "durationMs": 600,
@@ -32,21 +40,20 @@
     "sequence": 3,
     "type": "color",
     "sentTimestamp": 1791244800500,
-    "execTimestamp": 1791244801000,
+    "relativeTimestamp": 500,
     "payload": {
       "color": "#0057FF",
       "durationMs": 600,
       "transitionMs": 0
     }
   },
-
   {
     "schemaVersion": "1.0",
     "eventId": "same-haptic-low-seq",
     "sequence": 4,
     "type": "haptic",
     "sentTimestamp": 1791244802500,
-    "execTimestamp": 1791244803000,
+    "relativeTimestamp": 2500,
     "payload": {
       "intensity": 0.3,
       "sharpness": 0.2,
@@ -60,22 +67,21 @@
     "sequence": 5,
     "type": "haptic",
     "sentTimestamp": 1791244802500,
-    "execTimestamp": 1791244803000,
+    "relativeTimestamp": 2500,
     "payload": {
-      "intensity": 1.0,
+      "intensity": 1,
       "sharpness": 0.9,
       "durationMs": 500,
       "transitionMs": 0
     }
   },
-
   {
     "schemaVersion": "1.0",
     "eventId": "same-color-high-seq-wins-listed-first",
     "sequence": 7,
     "type": "color",
     "sentTimestamp": 1791244804500,
-    "execTimestamp": 1791244805000,
+    "relativeTimestamp": 4500,
     "payload": {
       "color": "#00FF00",
       "durationMs": 1500,
@@ -88,21 +94,20 @@
     "sequence": 6,
     "type": "color",
     "sentTimestamp": 1791244804500,
-    "execTimestamp": 1791244805000,
+    "relativeTimestamp": 4500,
     "payload": {
       "color": "#FF0000",
       "durationMs": 1500,
       "transitionMs": 0
     }
   },
-
   {
     "schemaVersion": "1.0",
     "eventId": "same-torch-low-seq",
     "sequence": 8,
     "type": "torch",
     "sentTimestamp": 1791244806500,
-    "execTimestamp": 1791244807000,
+    "relativeTimestamp": 6500,
     "payload": {
       "intensity": 0.4,
       "durationMs": 1000,
@@ -115,21 +120,20 @@
     "sequence": 9,
     "type": "torch",
     "sentTimestamp": 1791244806500,
-    "execTimestamp": 1791244807000,
+    "relativeTimestamp": 6500,
     "payload": {
-      "intensity": 1.0,
+      "intensity": 1,
       "durationMs": 500,
       "transitionMs": 100
     }
   },
-
   {
     "schemaVersion": "1.0",
     "eventId": "combined-haptic-low-seq",
     "sequence": 10,
     "type": "haptic",
     "sentTimestamp": 1791244808500,
-    "execTimestamp": 1791244809000,
+    "relativeTimestamp": 8500,
     "payload": {
       "intensity": 0.4,
       "durationMs": 800,
@@ -142,7 +146,7 @@
     "sequence": 11,
     "type": "color",
     "sentTimestamp": 1791244808500,
-    "execTimestamp": 1791244809000,
+    "relativeTimestamp": 8500,
     "payload": {
       "color": "#FFFFFF",
       "durationMs": 800,
@@ -155,7 +159,7 @@
     "sequence": 12,
     "type": "haptic",
     "sentTimestamp": 1791244808500,
-    "execTimestamp": 1791244809000,
+    "relativeTimestamp": 8500,
     "payload": {
       "intensity": 0.9,
       "sharpness": 0.6,
@@ -169,7 +173,7 @@
     "sequence": 13,
     "type": "color",
     "sentTimestamp": 1791244808500,
-    "execTimestamp": 1791244809000,
+    "relativeTimestamp": 8500,
     "payload": {
       "color": "#FF00AA",
       "durationMs": 800,
@@ -182,7 +186,7 @@
     "sequence": 14,
     "type": "torch",
     "sentTimestamp": 1791244808500,
-    "execTimestamp": 1791244809000,
+    "relativeTimestamp": 8500,
     "payload": {
       "intensity": 0.6,
       "durationMs": 800,
@@ -195,11 +199,24 @@
     "sequence": 15,
     "type": "torch",
     "sentTimestamp": 1791244810000,
-    "execTimestamp": 1791244810500,
+    "epochTimestamp": 1791244810500,
     "payload": {
-      "intensity": 1.0,
+      "intensity": 1,
       "durationMs": 1500,
       "transitionMs": 800
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "image-vinyl",
+    "sequence": 16,
+    "type": "image",
+    "sentTimestamp": 1791244812000,
+    "relativeTimestamp": 12000,
+    "payload": {
+      "assetAlias": "12in-Vinyl-LP-Record-Angle.jpg",
+      "durationMs": 3000,
+      "transitionMs": 300
     }
   }
 ]
