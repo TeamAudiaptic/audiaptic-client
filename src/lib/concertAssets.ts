@@ -6,18 +6,23 @@
  *   https://pub-....r2.dev/concert-1/12in-Vinyl-LP-Record-Angle.jpg
  *   └──── ASSET_BASE_URL ───┘ └code─┘ └──────── file name ─────────┘
  *
- * The bucket can't list its own contents, so every concert folder has an
- * index.json naming its files: { "files": ["a.jpg", "b.mp3", ...] }.
- * A code is valid when that index exists. On join, every listed file is
- * downloaded to the device's cache so events can play it without waiting on
- * the network.
+ * data/concertCode.json holds the bucket URL and the list of valid concert
+ * codes. The bucket can't list its own contents, so every concert folder has
+ * an index.json naming its files: { "files": ["a.jpg", "b.mp3", ...] }.
+ * On join, every listed file is downloaded to the device's cache so events
+ * can play it without waiting on the network.
  */
 
 import { Directory, File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 
+import concerts from "../../data/concertCode.json";
+
 /** Everything before the concert code; the same for every concert. */
-export const ASSET_BASE_URL = "https://pub-c69c5d6678254b90a1f1cac88377e860.r2.dev";
+export const ASSET_BASE_URL: string = concerts.assetBaseUrl;
+
+/** Codes the app accepts. */
+export const CONCERT_CODES: string[] = concerts.concertCodes;
 
 /** Thrown when no concert exists for the code the user typed. */
 export class InvalidConcertCodeError extends Error {
@@ -35,18 +40,19 @@ export function assetUrl(concertCode: string, fileName: string): string {
   return `${ASSET_BASE_URL}/${encodeURIComponent(concertCode)}/${encodeURIComponent(fileName)}`;
 }
 
-/** Codes are folder names, so anything else (empty, slashes, spaces) can't be a concert. */
-function looksLikeConcertCode(code: string): boolean {
-  return /^[A-Za-z0-9_-]+$/.test(code);
+/** Whether `code` is one of the concerts listed in data/concertCode.json. */
+export function isKnownConcertCode(code: string): boolean {
+  return CONCERT_CODES.includes(code);
 }
 
 /**
  * Reads the concert's index.json and returns the file names it lists.
  *
- * @throws InvalidConcertCodeError if there's no concert with this code.
+ * @throws InvalidConcertCodeError if the code isn't listed, or the bucket has
+ * no index.json for it.
  */
 export async function fetchConcertFiles(concertCode: string): Promise<string[]> {
-  if (!looksLikeConcertCode(concertCode)) throw new InvalidConcertCodeError(concertCode);
+  if (!isKnownConcertCode(concertCode)) throw new InvalidConcertCodeError(concertCode);
 
   // no-cache: the file list can change between performances.
   const response = await fetch(assetUrl(concertCode, "index.json"), {
