@@ -201,5 +201,20 @@
       "durationMs": 1500,
       "transitionMs": 800
     }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "torch-strobe-fast",
+    "sequence": 16,
+    "type": "torch",
+    "sentTimestamp": 1791244812500,
+    "execTimestamp": 1791244813000,
+    "payload": {
+      "intensity": 1.0,
+      "durationMs": 2000,
+      "transitionMs": 0,
+      "strobeHz": 8,
+      "dutyCycle": 0.3
+    }
   }
 ]

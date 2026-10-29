@@ -2,11 +2,19 @@ import AVFoundation
 import ExpoModulesCore
 
 public class AudiapticTorchModule: Module {
+  /// Looked up once so rapid fade and strobe ticks don't re-query AVFoundation.
+  private lazy var device: AVCaptureDevice? = {
+    guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else {
+      return nil
+    }
+    return device
+  }()
+
   public func definition() -> ModuleDefinition {
     Name("AudiapticTorch")
 
     Function("setTorchLevel") { (level: Float) in
-      guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else {
+      guard let device = self.device else {
         return
       }
 

@@ -40,6 +40,10 @@ export interface TorchPayload {
   intensity?: number;
   durationMs: number;
   transitionMs?: number;
+  /** Flashes per second (Hz). 0 or omitted means a steady light. */
+  strobeHz?: number;
+  /** Share of each strobe cycle spent on, from 0 to 1. Defaults to 0.5. */
+  dutyCycle?: number;
 }
 
 export interface ColorPayload {
