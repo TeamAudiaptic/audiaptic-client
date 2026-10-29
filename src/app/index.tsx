@@ -3,10 +3,12 @@ import { Pressable, Text, View } from "react-native";
 import { ActiveEventList, EventLog } from "@/components/EventDebugView";
 import { TorchController } from "@/components/TorchController";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
+import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 
 export default function Index() {
   const { active, log, isJoined, join, leave } = useEventProcessor();
+  useHapticOutput(active.haptic, isJoined);
   const torchState = useTorchTransition(active.torch, isJoined);
 
   return (
