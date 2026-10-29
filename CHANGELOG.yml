@@ -39,3 +39,17 @@ entries:
     emoji: ✨
     label: Feature
     message: The screen background follows the active color event during a session.
+- id: 5
+  pr: 37
+  author: dcr8024
+  time: '2026-10-29T03:40:07+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/37
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: The flashlight responds to torch events on Android, with adjustable brightness on supported Android 13+ devices.
+  - type: maintenance
+    emoji: 🔧
+    label: Maintenance
+    message: Native build output from local modules is now ignored by git.
