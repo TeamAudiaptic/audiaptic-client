@@ -218,5 +218,34 @@
       "durationMs": 3000,
       "transitionMs": 300
     }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "audio-clip",
+    "sequence": 17,
+    "type": "audio",
+    "sentTimestamp": 1791244815500,
+    "relativeTimestamp": 15500,
+    "payload": {
+      "assetAlias": "file_example_MP3_700KB.mp3",
+      "startOffsetMs": 10000,
+      "durationMs": 5000,
+      "transitionMs": 500
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "video-clip",
+    "sequence": 18,
+    "type": "video",
+    "sentTimestamp": 1791244821000,
+    "relativeTimestamp": 21000,
+    "payload": {
+      "assetAlias": "file_example_MP4_480_1_5MG.mp4",
+      "startOffsetMs": 0,
+      "durationMs": 6000,
+      "loop": false,
+      "transitionMs": 300
+    }
   }
 ]

@@ -13,7 +13,7 @@
  * `waiting` until it does.
  *
  * Key ideas:
- * - A *channel* is one output: haptic, torch, color or image. Each channel shows at
+ * - A *channel* is one output: haptic, torch, color, image, audio or video. Each channel shows at
  *   most one event at a time; different channels never affect each other.
  * - On the same channel the event with the higher `sequence` wins. Arrival
  *   order does not matter, so a late-arriving older event can't take over.
@@ -66,7 +66,7 @@ type Listener = (state: ProcessorState) => void;
 const MAX_LOG_ENTRIES = 50;
 
 const INITIAL_STATE: ProcessorState = {
-  active: { haptic: null, torch: null, color: null, image: null },
+  active: { haptic: null, torch: null, color: null, image: null, audio: null, video: null },
   log: [],
 };
 

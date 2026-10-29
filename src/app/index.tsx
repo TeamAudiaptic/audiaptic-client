@@ -13,6 +13,8 @@ import {
 
 import { EventLog } from "@/components/EventDebugView";
 import { TorchController } from "@/components/TorchController";
+import { VideoOutput } from "@/components/VideoOutput";
+import { useAudioOutput } from "@/hooks/useAudioOutput";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 import type { LogEntry } from "@/lib/eventProcessor";
@@ -34,6 +36,8 @@ const SPINNER_COLOR = "#ffffff";
 export default function Index() {
   const { active, log, status, isJoined, error, assets, join, leave } = useEventProcessor();
   const torchState = useTorchTransition(active.torch, isJoined);
+  // Called before the early return: hooks must run on every render.
+  useAudioOutput(active.audio, assets);
 
   if (!isJoined) {
     return <JoinView onJoin={join} error={error} isDownloading={status === "downloading"} />;
@@ -49,6 +53,8 @@ export default function Index() {
     >
       <TorchController torchState={torchState} />
       <ConcertView image={getImage(active.image, assets)} log={log} onLeave={leave} />
+      {/* Last, so the full-screen video draws on top of everything else. */}
+      <VideoOutput videoEvent={active.video} assets={assets} />
     </View>
   );
 }

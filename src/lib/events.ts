@@ -4,9 +4,12 @@
  */
 
 /** One output on the device. Each event type drives exactly one channel. */
-export type Channel = "haptic" | "torch" | "color" | "image";
+export type Channel = "haptic" | "torch" | "color" | "image" | "audio" | "video";
 
-export const CHANNELS: Channel[] = ["haptic", "torch", "color", "image"];
+export const CHANNELS: Channel[] = ["haptic", "torch", "color", "image", "audio", "video"];
+
+/** Channels whose events play a downloaded file named by `payload.assetAlias`. */
+const ASSET_CHANNELS: Channel[] = ["image", "audio", "video"];
 
 /**
  * Fields every event has, whatever its type (see shared-envelope.mdx).
@@ -72,6 +75,30 @@ export interface ImagePayload {
   transitionMs?: number;
 }
 
+export interface AudioPayload {
+  /** File name of an asset downloaded on join. */
+  assetAlias: string;
+  /** Where in the file to start. Defaults to 0. */
+  startOffsetMs?: number;
+  /** Clip length. Missing or 0 plays to the end of the file. */
+  durationMs?: number;
+  /** Volume fade-in time. Optional. */
+  transitionMs?: number;
+}
+
+export interface VideoPayload {
+  /** File name of an asset downloaded on join. Plays full-screen. */
+  assetAlias: string;
+  /** Where in the video to start. Defaults to 0. */
+  startOffsetMs?: number;
+  /** Clip length. Missing or 0 plays to the end of the video. */
+  durationMs?: number;
+  /** Restart from the start when the video ends, until the duration is up. */
+  loop?: boolean;
+  /** Fade-in time. Optional. */
+  transitionMs?: number;
+}
+
 /**
  * Any event the processor understands. This is a *discriminated union*:
  * checking `event.type === "color"` tells TypeScript the payload is a
@@ -81,12 +108,18 @@ export type SessionEvent =
   | EventEnvelope<"haptic", HapticPayload>
   | EventEnvelope<"torch", TorchPayload>
   | EventEnvelope<"color", ColorPayload>
-  | EventEnvelope<"image", ImagePayload>;
+  | EventEnvelope<"image", ImagePayload>
+  | EventEnvelope<"audio", AudioPayload>
+  | EventEnvelope<"video", VideoPayload>;
 
 /** Anything the processor accepts: an output event or the Start event. */
 export type IncomingEvent = SessionEvent | StartEvent;
 
-/** When the event stops, given when it started. A missing or 0 duration means "until replaced". */
+/**
+ * When the event stops, given when it started. A missing or 0 duration means
+ * "until replaced"; audio and video then also stop by themselves when the file
+ * ends, but the processor doesn't know the file's length.
+ */
 export function endsAt(event: SessionEvent, startedAt: number): number {
   const { durationMs } = event.payload;
   return durationMs ? startedAt + durationMs : Infinity;
@@ -122,10 +155,14 @@ export function isSessionEvent(value: unknown): value is SessionEvent {
 
   const { payload } = value as Partial<SessionEvent>;
   if (typeof payload !== "object" || payload === null) return false;
-  // Image is the only type whose duration may be left out.
-  if (value.type === "image") {
-    const image = payload as Partial<ImagePayload>;
-    return typeof image.assetAlias === "string" && isOptionalNumber(image.durationMs);
+  // Asset events name a file and may leave out their duration.
+  if (ASSET_CHANNELS.includes(value.type as Channel)) {
+    const asset = payload as Partial<AudioPayload>;
+    return (
+      typeof asset.assetAlias === "string" &&
+      isOptionalNumber(asset.durationMs) &&
+      isOptionalNumber(asset.startOffsetMs)
+    );
   }
   return typeof payload.durationMs === "number";
 }

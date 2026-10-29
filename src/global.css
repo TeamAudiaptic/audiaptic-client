@@ -4,6 +4,7 @@
 @import "./styles/eventLog.css";
 @import "./styles/torch.css";
 @import "./styles/permission.css";
+@import "./styles/video.css";
 
 @tailwind base;
 @tailwind components;

@@ -4,7 +4,7 @@ import {
   type AssetUris,
   deleteConcertAssets,
   downloadConcertAssets,
-  isValidConcertCode,
+  InvalidConcertCodeError,
 } from "@/lib/concertAssets";
 import { createEventProcessor } from "@/lib/eventProcessor";
 import { type TestSession, startTestSession } from "@/lib/testSessionSource";
@@ -67,22 +67,23 @@ export function useEventProcessor() {
   const join = useCallback(
     async (code: string) => {
       stop(); // start clean if a session was already running
-      if (!isValidConcertCode(code)) {
-        setError("Invalid code");
-        return;
-      }
 
       const thisAttempt = attempt.current;
       setError(null);
       setStatus("downloading");
       try {
+        // Also checks the code: it's valid when the concert's index.json exists.
         const downloaded = await downloadConcertAssets(code.trim());
         if (attempt.current !== thisAttempt) return;
         setAssets(downloaded);
       } catch (e) {
         if (attempt.current !== thisAttempt) return;
-        console.warn("Asset download failed", e);
-        setError("Couldn't download the concert files. Check your connection and try again.");
+        if (e instanceof InvalidConcertCodeError) {
+          setError("Invalid code");
+        } else {
+          console.warn("Asset download failed", e);
+          setError("Couldn't download the concert files. Check your connection and try again.");
+        }
         setStatus("idle");
         return;
       }
