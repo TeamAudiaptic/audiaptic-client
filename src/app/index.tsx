@@ -5,14 +5,22 @@ import { TorchController } from "@/components/TorchController";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
+import { getBackgroundColor } from "@/lib/outputs/colorEvent";
+
+/** Shown when no color event is playing (Tailwind's teal-500). */
+const DEFAULT_BACKGROUND = "#14B8A6";
 
 export default function Index() {
   const { active, log, isJoined, join, leave } = useEventProcessor();
   useHapticOutput(active.haptic, isJoined);
+  const backgroundColor = getBackgroundColor(active.color) ?? DEFAULT_BACKGROUND;
   const torchState = useTorchTransition(active.torch, isJoined);
 
   return (
-    <View className="flex-1 items-center gap-6 bg-teal-500 px-4 pb-8 pt-20">
+    <View
+      className="flex-1 items-center gap-6 px-4 pb-8 pt-20"
+      style={{ backgroundColor }}
+    >
       <Pressable
         accessibilityRole="button"
         onPress={isJoined ? leave : join}
