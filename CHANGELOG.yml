@@ -93,3 +93,13 @@ entries:
     emoji: ✨
     label: Feature
     message: Strobing flashlight
+- id: 8
+  pr: 40
+  author: fangkristen
+  time: '2026-11-03T22:43:47+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/40
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Added iOS Core Haptics output module and session hook to play continuous haptic events with intensity, sharpness, duration, and fade transitions.
