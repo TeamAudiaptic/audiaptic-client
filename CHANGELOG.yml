@@ -53,3 +53,33 @@ entries:
     emoji: 🔧
     label: Maintenance
     message: Native build output from local modules is now ignored by git.
+- id: 6
+  pr: 43
+  author: dcr8024
+  time: '2026-11-03T22:29:16+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/43
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Join a concert by code; the client downloads the concert's media listed in its R2 `index.json`, and deletes it on leave
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Image, audio and full-screen video events play downloaded assets, supporting `startOffsetMs`, `durationMs`, `loop` and fade-in
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Kahoot-style code entry home screen and a simplified concert screen with an image area and a compact event log
+  - type: refactor
+    emoji: ♻️
+    label: Refactor
+    message: Moved all component styling into CSS files under `src/styles/`
+  - type: maintenance
+    emoji: 🔧
+    label: Maintenance
+    message: Added `expo-file-system`, `expo-audio` and `expo-video` (requires a native rebuild)
+  - type: breaking
+    emoji: 💥
+    label: Breaking change
+    message: Events now use `epochTimestamp` / `relativeTimestamp` with a `start` event instead of `execTimestamp`, matching the updated event docs
