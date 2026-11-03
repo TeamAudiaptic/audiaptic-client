@@ -83,3 +83,13 @@ entries:
     emoji: 💥
     label: Breaking change
     message: Events now use `epochTimestamp` / `relativeTimestamp` with a `start` event instead of `execTimestamp`, matching the updated event docs
+- id: 7
+  pr: 42
+  author: fangkristen
+  time: '2026-11-03T22:43:33+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/42
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Strobing flashlight
