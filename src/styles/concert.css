@@ -1,0 +1,33 @@
+/* Concert screen, shown while joined (ConcertView in app/index.tsx). */
+
+@layer components {
+  /* Default background; a color event overrides it while it plays. */
+  .concert-screen {
+    @apply flex-1 bg-teal-500;
+  }
+
+  .concert-content {
+    @apply flex-1 gap-4 px-4 pb-8 pt-16;
+  }
+
+  /* Image area: fills the free space; shows a placeholder until an image event plays. */
+  .image-frame {
+    @apply flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/20;
+  }
+
+  .image-frame-image {
+    @apply h-full w-full;
+  }
+
+  .image-frame-placeholder {
+    @apply text-base text-white/70;
+  }
+
+  .leave-button {
+    @apply items-center rounded-full bg-white py-4 active:opacity-70;
+  }
+
+  .leave-button-text {
+    @apply text-lg font-bold text-teal-600;
+  }
+}

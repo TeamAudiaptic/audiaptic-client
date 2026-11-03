@@ -1,0 +1,35 @@
+/* Home screen: Kahoot-style code entry (JoinView in app/index.tsx). */
+
+@layer components {
+  .join-screen {
+    @apply flex-1 items-center justify-center bg-teal-500 px-6;
+  }
+
+  .join-title {
+    @apply mb-8 text-5xl font-extrabold text-white;
+  }
+
+  .join-card {
+    @apply w-full max-w-sm gap-3 rounded-2xl bg-white p-4;
+  }
+
+  .join-label {
+    @apply text-sm font-semibold text-slate-600;
+  }
+
+  .join-input {
+    @apply rounded-xl border-2 border-slate-300 px-4 py-3 text-center text-xl font-bold text-black;
+  }
+
+  .join-button {
+    @apply flex-row items-center justify-center gap-3 rounded-xl bg-slate-900 py-4 active:opacity-80;
+  }
+
+  .join-button-text {
+    @apply text-lg font-bold text-white;
+  }
+
+  .join-error {
+    @apply mt-4 text-center text-base font-bold text-white;
+  }
+}
