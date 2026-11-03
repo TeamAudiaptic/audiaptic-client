@@ -16,6 +16,7 @@ import { TorchController } from "@/components/TorchController";
 import { VideoOutput } from "@/components/VideoOutput";
 import { useAudioOutput } from "@/hooks/useAudioOutput";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
+import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 import type { LogEntry } from "@/lib/eventProcessor";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
@@ -35,6 +36,7 @@ const SPINNER_COLOR = "#ffffff";
  */
 export default function Index() {
   const { active, log, status, isJoined, error, assets, join, leave } = useEventProcessor();
+  useHapticOutput(active.haptic, isJoined);
   const torchState = useTorchTransition(active.torch, isJoined);
   // Called before the early return: hooks must run on every render.
   useAudioOutput(active.audio, assets);

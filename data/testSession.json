@@ -221,8 +221,38 @@
   },
   {
     "schemaVersion": "1.0",
-    "eventId": "audio-clip",
+    "eventId": "torch-strobe-fast",
     "sequence": 17,
+    "type": "torch",
+    "sentTimestamp": 1791244812500,
+    "epochTimestamp": 1791244813000,
+    "payload": {
+      "intensity": 1.0,
+      "durationMs": 2000,
+      "transitionMs": 0,
+      "strobe": {
+        "strobeHz": 15.6,
+        "dutyCycle": 0.837
+      }
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "torch-steady-after-strobe",
+    "sequence": 18,
+    "type": "torch",
+    "sentTimestamp": 1791244815000,
+    "epochTimestamp": 1791244815500,
+    "payload": {
+      "intensity": 1.0,
+      "durationMs": 1500,
+      "transitionMs": 0
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "audio-clip",
+    "sequence": 19,
     "type": "audio",
     "sentTimestamp": 1791244815500,
     "relativeTimestamp": 15500,
@@ -236,7 +266,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "video-clip",
-    "sequence": 18,
+    "sequence": 20,
     "type": "video",
     "sentTimestamp": 1791244821000,
     "relativeTimestamp": 21000,
