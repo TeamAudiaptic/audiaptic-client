@@ -1,0 +1,11 @@
+/* Full-screen video output, drawn over the concert screen (components/VideoOutput.tsx). */
+
+@layer components {
+  .video-overlay {
+    @apply absolute inset-0 bg-black;
+  }
+
+  .video-view {
+    @apply h-full w-full;
+  }
+}

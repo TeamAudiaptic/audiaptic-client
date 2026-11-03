@@ -1,12 +1,17 @@
 import { CameraView } from "expo-camera";
+import { cssInterop } from "nativewind";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform } from "react-native";
 
 import { type TorchTransitionState } from "@/hooks/useTorchTransition";
 import {
   hasNativeTorchLevelControl,
   setHardwareTorchLevel,
 } from "../../modules/audiaptic-torch/src";
+
+// Styles live in src/styles/torch.css. CameraView isn't a core component, so
+// NativeWind has to be told to turn its className into a style.
+cssInterop(CameraView, { className: "style" });
 
 interface TorchControllerProps {
   torchState: TorchTransitionState;
@@ -15,6 +20,8 @@ interface TorchControllerProps {
 export function TorchController({ torchState }: TorchControllerProps) {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const { intensity, isHardwareTorchOn } = torchState;
+
+  // Renders nothing visible: it only drives the flashlight.
 
   // Drive native hardware torch brightness levels when the native module is available
   useEffect(() => {
@@ -32,32 +39,15 @@ export function TorchController({ torchState }: TorchControllerProps) {
     };
   }, []);
 
-  return (
-    <View className="items-center">
-      {/* Fallback to CameraView boolean torch only when running in Expo Go without the native module */}
-      {Platform.OS !== "web" && !hasNativeTorchLevelControl && (
-        <CameraView
-          facing="back"
-          enableTorch={isHardwareTorchOn && isCameraReady}
-          onCameraReady={() => setIsCameraReady(true)}
-          style={styles.hiddenCamera}
-        />
-      )}
+  // Fallback to CameraView boolean torch only when running in Expo Go without the native module
+  if (Platform.OS === "web" || hasNativeTorchLevelControl) return null;
 
-      <Text className="text-xl font-bold text-white">
-        Flashlight: {Math.round(intensity * 100)}%
-      </Text>
-    </View>
+  return (
+    <CameraView
+      facing="back"
+      enableTorch={isHardwareTorchOn && isCameraReady}
+      onCameraReady={() => setIsCameraReady(true)}
+      className="torch-hidden-camera"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  hiddenCamera: {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    opacity: 0,
-    bottom: 0,
-    right: 0,
-  },
-});

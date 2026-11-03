@@ -1,0 +1,11 @@
+/* Short debug log of event outcomes (components/EventDebugView.tsx). */
+
+@layer components {
+  .event-log {
+    @apply h-28 w-full flex-none rounded-xl bg-black/20 px-3 py-2;
+  }
+
+  .event-log-line {
+    @apply font-mono text-[10px] text-white;
+  }
+}
