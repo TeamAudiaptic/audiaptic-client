@@ -35,15 +35,20 @@ export interface HapticPayload {
   transitionMs?: number;
 }
 
+export interface TorchStrobe {
+  /** Flashes per second (Hz). */
+  strobeHz: number;
+  /** Share of each strobe cycle spent on, from 0 to 1. Defaults to 0.5. */
+  dutyCycle?: number;
+}
+
 export interface TorchPayload {
   /** Brightness from 0 to 1 on devices that support it. Defaults to full. */
   intensity?: number;
   durationMs: number;
   transitionMs?: number;
-  /** Flashes per second (Hz). 0 or omitted means a steady light. */
-  strobeHz?: number;
-  /** Share of each strobe cycle spent on, from 0 to 1. Defaults to 0.5. */
-  dutyCycle?: number;
+  /** Optional strobe settings; omitted for a steady light ("no strobe"). */
+  strobe?: TorchStrobe;
 }
 
 export interface ColorPayload {

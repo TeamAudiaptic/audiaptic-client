@@ -213,8 +213,23 @@
       "intensity": 1.0,
       "durationMs": 2000,
       "transitionMs": 0,
-      "strobeHz": 8,
-      "dutyCycle": 0.3
+      "strobe": {
+        "strobeHz": 15.6,
+        "dutyCycle": 0.837
+      }
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "torch-steady-after-strobe",
+    "sequence": 17,
+    "type": "torch",
+    "sentTimestamp": 1791244815000,
+    "execTimestamp": 1791244815500,
+    "payload": {
+      "intensity": 1.0,
+      "durationMs": 1500,
+      "transitionMs": 0
     }
   }
 ]

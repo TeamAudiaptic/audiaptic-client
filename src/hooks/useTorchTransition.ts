@@ -8,15 +8,21 @@ export interface TorchTransitionState {
   isHardwareTorchOn: boolean;
 }
 
-/** Upper bound for iOS/Android camera LED hardware before flashes blur together. */
-const MAX_STROBE_HZ = 20;
+/**
+ * Strobe bounds so both ON and OFF phases stay >= 50ms (~3 frames at 60fps),
+ * giving the physical camera LED enough time to switch cleanly and evenly.
+ */
+const MIN_STROBE_HZ = 1;
+const MAX_STROBE_HZ = 8;
+const MIN_DUTY_CYCLE = 0.4;
+const MAX_DUTY_CYCLE = 0.6;
 const DEFAULT_DUTY_CYCLE = 0.5;
 
 /**
  * Hook to manage torch brightness transitions and strobing.
  * Ramps intensity up to target over `transitionMs`, holds for the duration,
- * and fades out when the event completes. When `strobeHz` is set, gates the
- * brightness on and off at the requested frequency.
+ * and fades out when the event completes. When `payload.strobe` is set, gates
+ * the brightness on and off at the requested frequency.
  */
 export function useTorchTransition(
   activeTorch: SessionEvent | null,
@@ -43,25 +49,21 @@ export function useTorchTransition(
       stopStrobe();
 
       const periodMs = 1000 / strobeHz;
-      const onMs = periodMs * dutyCycle;
-      const startTime = Date.now();
+      const onMs = Math.round(periodMs * dutyCycle);
+      const offMs = Math.round(periodMs - onMs);
 
       const scheduleFlip = (delayMs: number) => {
         strobeTimer.current = setTimeout(() => {
-          const elapsed = Date.now() - startTime;
-          const cyclePos = elapsed % periodMs;
-          const on = cyclePos < onMs;
-
+          const on = !isStrobeOnRef.current;
           isStrobeOnRef.current = on;
           setIntensity(on ? envelopeRef.current : 0);
 
-          const nextDelayMs = on ? onMs - cyclePos : periodMs - cyclePos;
-          scheduleFlip(Math.max(1, nextDelayMs));
+          scheduleFlip(on ? onMs : offMs);
         }, delayMs);
       };
 
       // Cycle starts ON at t = 0; schedule the first flip to OFF at `onMs`.
-      scheduleFlip(Math.max(1, onMs));
+      scheduleFlip(onMs);
     },
     [stopStrobe],
   );
@@ -89,10 +91,15 @@ export function useTorchTransition(
     if (activeTorch?.type === "torch") {
       const target = Math.max(0, Math.min(1, activeTorch.payload.intensity ?? 1.0));
       const transitionMs = Math.max(0, activeTorch.payload.transitionMs ?? 0);
-      const strobeHz = Math.max(0, Math.min(MAX_STROBE_HZ, activeTorch.payload.strobeHz ?? 0));
+      const strobe = activeTorch.payload.strobe;
+      const rawStrobeHz = strobe?.strobeHz ?? 0;
+      const strobeHz =
+        rawStrobeHz > 0
+          ? Math.max(MIN_STROBE_HZ, Math.min(MAX_STROBE_HZ, rawStrobeHz))
+          : 0;
       const dutyCycle = Math.max(
-        0.05,
-        Math.min(0.95, activeTorch.payload.dutyCycle ?? DEFAULT_DUTY_CYCLE),
+        MIN_DUTY_CYCLE,
+        Math.min(MAX_DUTY_CYCLE, strobe?.dutyCycle ?? DEFAULT_DUTY_CYCLE),
       );
       lastTransitionMs.current = transitionMs;
 
