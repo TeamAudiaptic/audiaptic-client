@@ -19,6 +19,7 @@ import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 import type { LogEntry } from "@/lib/eventProcessor";
+import { getCaption } from "@/lib/outputs/captionEvent";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
 import { getImage } from "@/lib/outputs/imageEvent";
 
@@ -54,7 +55,12 @@ export default function Index() {
       style={eventColor ? { backgroundColor: eventColor } : undefined}
     >
       <TorchController torchState={torchState} />
-      <ConcertView image={getImage(active.image, assets)} log={log} onLeave={leave} />
+      <ConcertView
+        image={getImage(active.image, assets)}
+        caption={getCaption(active.caption)}
+        log={log}
+        onLeave={leave}
+      />
       {/* Last, so the full-screen video draws on top of everything else. */}
       <VideoOutput videoEvent={active.video} assets={assets} />
     </View>
@@ -117,12 +123,13 @@ function JoinView({ onJoin, error, isDownloading }: JoinViewProps) {
 
 interface ConcertViewProps {
   image: ReturnType<typeof getImage>;
+  caption: string | null;
   log: LogEntry[];
   onLeave: () => void;
 }
 
-/** Shown while joined: the image area, a short log and a Leave button. */
-function ConcertView({ image, log, onLeave }: ConcertViewProps) {
+/** Shown while joined: the image area, captions box, a short log and a Leave button. */
+function ConcertView({ image, caption, log, onLeave }: ConcertViewProps) {
   return (
     <View className="concert-content">
       <View className="image-frame">
@@ -135,6 +142,14 @@ function ConcertView({ image, log, onLeave }: ConcertViewProps) {
           />
         ) : (
           <Text className="image-frame-placeholder">No image showing</Text>
+        )}
+      </View>
+
+      <View className="caption-box">
+        {caption ? (
+          <Text className="caption-text">{caption}</Text>
+        ) : (
+          <Text className="caption-placeholder">No caption showing</Text>
         )}
       </View>
 

@@ -49,8 +49,20 @@
   },
   {
     "schemaVersion": "1.0",
-    "eventId": "same-haptic-low-seq",
+    "eventId": "mixed-types-caption-1",
     "sequence": 4,
+    "type": "caption",
+    "sentTimestamp": 1791244800500,
+    "relativeTimestamp": 500,
+    "payload": {
+      "text": "Follow the lights",
+      "durationMs": 3000
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-haptic-low-seq",
+    "sequence": 5,
     "type": "haptic",
     "sentTimestamp": 1791244802500,
     "relativeTimestamp": 2500,
@@ -64,7 +76,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "same-haptic-high-seq-wins",
-    "sequence": 5,
+    "sequence": 6,
     "type": "haptic",
     "sentTimestamp": 1791244802500,
     "relativeTimestamp": 2500,
@@ -78,7 +90,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "same-color-high-seq-wins-listed-first",
-    "sequence": 7,
+    "sequence": 8,
     "type": "color",
     "sentTimestamp": 1791244804500,
     "relativeTimestamp": 4500,
@@ -91,7 +103,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "same-color-low-seq-listed-second",
-    "sequence": 6,
+    "sequence": 7,
     "type": "color",
     "sentTimestamp": 1791244804500,
     "relativeTimestamp": 4500,
@@ -103,8 +115,32 @@
   },
   {
     "schemaVersion": "1.0",
+    "eventId": "same-caption-low-seq",
+    "sequence": 9,
+    "type": "caption",
+    "sentTimestamp": 1791244804500,
+    "relativeTimestamp": 4500,
+    "payload": {
+      "text": "Wait for the drop...",
+      "durationMs": 1500
+    }
+  },
+  {
+    "schemaVersion": "1.0",
+    "eventId": "same-caption-high-seq-wins",
+    "sequence": 10,
+    "type": "caption",
+    "sentTimestamp": 1791244804500,
+    "relativeTimestamp": 4500,
+    "payload": {
+      "text": "Feel the bass drop!",
+      "durationMs": 1500
+    }
+  },
+  {
+    "schemaVersion": "1.0",
     "eventId": "same-torch-low-seq",
-    "sequence": 8,
+    "sequence": 11,
     "type": "torch",
     "sentTimestamp": 1791244806500,
     "relativeTimestamp": 6500,
@@ -117,7 +153,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "same-torch-high-seq-wins",
-    "sequence": 9,
+    "sequence": 12,
     "type": "torch",
     "sentTimestamp": 1791244806500,
     "relativeTimestamp": 6500,
@@ -130,7 +166,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "combined-haptic-low-seq",
-    "sequence": 10,
+    "sequence": 13,
     "type": "haptic",
     "sentTimestamp": 1791244808500,
     "relativeTimestamp": 8500,
@@ -143,7 +179,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "combined-color-low-seq",
-    "sequence": 11,
+    "sequence": 14,
     "type": "color",
     "sentTimestamp": 1791244808500,
     "relativeTimestamp": 8500,
@@ -156,7 +192,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "combined-haptic-high-seq-wins",
-    "sequence": 12,
+    "sequence": 15,
     "type": "haptic",
     "sentTimestamp": 1791244808500,
     "relativeTimestamp": 8500,
@@ -170,7 +206,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "combined-color-high-seq-wins",
-    "sequence": 13,
+    "sequence": 16,
     "type": "color",
     "sentTimestamp": 1791244808500,
     "relativeTimestamp": 8500,
@@ -183,7 +219,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "combined-torch",
-    "sequence": 14,
+    "sequence": 17,
     "type": "torch",
     "sentTimestamp": 1791244808500,
     "relativeTimestamp": 8500,
@@ -195,8 +231,20 @@
   },
   {
     "schemaVersion": "1.0",
+    "eventId": "combined-caption",
+    "sequence": 18,
+    "type": "caption",
+    "sentTimestamp": 1791244808500,
+    "relativeTimestamp": 8500,
+    "payload": {
+      "text": "Hands up!",
+      "durationMs": 2000
+    }
+  },
+  {
+    "schemaVersion": "1.0",
     "eventId": "torch-gradual-fade",
-    "sequence": 15,
+    "sequence": 19,
     "type": "torch",
     "sentTimestamp": 1791244810000,
     "epochTimestamp": 1791244810500,
@@ -209,7 +257,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "image-vinyl",
-    "sequence": 16,
+    "sequence": 20,
     "type": "image",
     "sentTimestamp": 1791244812000,
     "relativeTimestamp": 12000,
@@ -221,8 +269,20 @@
   },
   {
     "schemaVersion": "1.0",
+    "eventId": "caption-vinyl",
+    "sequence": 21,
+    "type": "caption",
+    "sentTimestamp": 1791244812000,
+    "relativeTimestamp": 12000,
+    "payload": {
+      "text": "Now spinning: Track 1",
+      "durationMs": 3000
+    }
+  },
+  {
+    "schemaVersion": "1.0",
     "eventId": "torch-strobe-fast",
-    "sequence": 17,
+    "sequence": 22,
     "type": "torch",
     "sentTimestamp": 1791244812500,
     "epochTimestamp": 1791244813000,
@@ -239,7 +299,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "torch-steady-after-strobe",
-    "sequence": 18,
+    "sequence": 23,
     "type": "torch",
     "sentTimestamp": 1791244815000,
     "epochTimestamp": 1791244815500,
@@ -252,7 +312,7 @@
   {
     "schemaVersion": "1.0",
     "eventId": "audio-clip",
-    "sequence": 19,
+    "sequence": 24,
     "type": "audio",
     "sentTimestamp": 1791244815500,
     "relativeTimestamp": 15500,
@@ -265,8 +325,20 @@
   },
   {
     "schemaVersion": "1.0",
+    "eventId": "caption-audio",
+    "sequence": 25,
+    "type": "caption",
+    "sentTimestamp": 1791244815500,
+    "relativeTimestamp": 15500,
+    "payload": {
+      "text": "Listen closely to the melody",
+      "durationMs": 5000
+    }
+  },
+  {
+    "schemaVersion": "1.0",
     "eventId": "video-clip",
-    "sequence": 20,
+    "sequence": 26,
     "type": "video",
     "sentTimestamp": 1791244821000,
     "relativeTimestamp": 21000,
