@@ -4,9 +4,17 @@
  */
 
 /** One output on the device. Each event type drives exactly one channel. */
-export type Channel = "haptic" | "torch" | "color" | "image" | "audio" | "video";
+export type Channel = "haptic" | "torch" | "color" | "image" | "audio" | "video" | "caption";
 
-export const CHANNELS: Channel[] = ["haptic", "torch", "color", "image", "audio", "video"];
+export const CHANNELS: Channel[] = [
+  "haptic",
+  "torch",
+  "color",
+  "image",
+  "audio",
+  "video",
+  "caption",
+];
 
 /** Channels whose events play a downloaded file named by `payload.assetAlias`. */
 const ASSET_CHANNELS: Channel[] = ["image", "audio", "video"];
@@ -108,6 +116,13 @@ export interface VideoPayload {
   transitionMs?: number;
 }
 
+export interface CaptionPayload {
+  /** Text shown on screen while the event is active. */
+  text: string;
+  /** 0 means "until replaced". */
+  durationMs: number;
+}
+
 /**
  * Any event the processor understands. This is a *discriminated union*:
  * checking `event.type === "color"` tells TypeScript the payload is a
@@ -119,7 +134,8 @@ export type SessionEvent =
   | EventEnvelope<"color", ColorPayload>
   | EventEnvelope<"image", ImagePayload>
   | EventEnvelope<"audio", AudioPayload>
-  | EventEnvelope<"video", VideoPayload>;
+  | EventEnvelope<"video", VideoPayload>
+  | EventEnvelope<"caption", CaptionPayload>;
 
 /** Anything the processor accepts: an output event or the Start event. */
 export type IncomingEvent = SessionEvent | StartEvent;
@@ -172,6 +188,10 @@ export function isSessionEvent(value: unknown): value is SessionEvent {
       isOptionalNumber(asset.durationMs) &&
       isOptionalNumber(asset.startOffsetMs)
     );
+  }
+  if (value.type === "caption") {
+    const caption = payload as Partial<CaptionPayload>;
+    return typeof caption.text === "string" && typeof caption.durationMs === "number";
   }
   return typeof payload.durationMs === "number";
 }
