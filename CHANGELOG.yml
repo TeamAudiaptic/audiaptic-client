@@ -103,3 +103,13 @@ entries:
     emoji: ✨
     label: Feature
     message: Added iOS Core Haptics output module and session hook to play continuous haptic events with intensity, sharpness, duration, and fade transitions.
+- id: 9
+  pr: 44
+  author: fangkristen
+  time: '2026-11-05T21:57:04+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/44
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Caption events
