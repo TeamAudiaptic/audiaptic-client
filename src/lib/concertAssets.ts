@@ -1,13 +1,14 @@
 /**
  * Finding and downloading a concert's files.
  *
- * Files live in a public R2 bucket under a folder named after the concert code:
+ * Files live in a public R2 bucket, in one folder per concert:
  *
  *   https://pub-....r2.dev/concert-1/12in-Vinyl-LP-Record-Angle.jpg
- *   └──── ASSET_BASE_URL ───┘ └code─┘ └──────── file name ─────────┘
+ *   └──── ASSET_BASE_URL ───┘ └folder─┘ └──────── file name ─────────┘
  *
- * data/concertCode.json holds the bucket URL and the list of valid concert
- * codes. The bucket can't list its own contents, so every concert folder has
+ * data/concertCode.json holds the bucket URL and the concerts: each one's join
+ * code (what the user types, and what the server accepts) and its asset
+ * folder. The bucket can't list its own contents, so every concert folder has
  * an index.json naming its files: { "files": ["a.jpg", "b.mp3", ...] }.
  * On join, every listed file is downloaded to the device's cache so events
  * can play it without waiting on the network.
@@ -16,18 +17,29 @@
 import { Directory, File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 
-import concerts from "../../data/concertCode.json";
+import config from "../../data/concertCode.json";
 
-/** Everything before the concert code; the same for every concert. */
-export const ASSET_BASE_URL: string = concerts.assetBaseUrl;
+/** Everything before the asset folder; the same for every concert. */
+export const ASSET_BASE_URL: string = config.assetBaseUrl;
 
-/** Codes the app accepts. */
-export const CONCERT_CODES: string[] = concerts.concertCodes;
+export interface Concert {
+  /** Join code: what the user types, and what the server's audience socket accepts. */
+  code: string;
+  /** Bucket folder holding the concert's index.json and media. */
+  assetFolder: string;
+}
+
+const CONCERTS: Concert[] = config.concerts;
+
+/** The concert listed in data/concertCode.json for `code`, if any. */
+export function findConcert(code: string): Concert | undefined {
+  return CONCERTS.find((concert) => concert.code === code);
+}
 
 /** Thrown when no concert exists for the code the user typed. */
 export class InvalidConcertCodeError extends Error {
   constructor(code: string) {
-    super(`No concert found for code "${code}"`);
+    super(`No concert found for "${code}"`);
     this.name = "InvalidConcertCodeError";
   }
 }
@@ -36,29 +48,21 @@ export class InvalidConcertCodeError extends Error {
 export type AssetUris = Record<string, string>;
 
 /** Download URL for one of a concert's files. */
-export function assetUrl(concertCode: string, fileName: string): string {
-  return `${ASSET_BASE_URL}/${encodeURIComponent(concertCode)}/${encodeURIComponent(fileName)}`;
-}
-
-/** Whether `code` is one of the concerts listed in data/concertCode.json. */
-export function isKnownConcertCode(code: string): boolean {
-  return CONCERT_CODES.includes(code);
+export function assetUrl(assetFolder: string, fileName: string): string {
+  return `${ASSET_BASE_URL}/${encodeURIComponent(assetFolder)}/${encodeURIComponent(fileName)}`;
 }
 
 /**
  * Reads the concert's index.json and returns the file names it lists.
  *
- * @throws InvalidConcertCodeError if the code isn't listed, or the bucket has
- * no index.json for it.
+ * @throws InvalidConcertCodeError if the bucket has no index.json in that folder.
  */
-export async function fetchConcertFiles(concertCode: string): Promise<string[]> {
-  if (!isKnownConcertCode(concertCode)) throw new InvalidConcertCodeError(concertCode);
-
+export async function fetchConcertFiles(assetFolder: string): Promise<string[]> {
   // no-cache: the file list can change between performances.
-  const response = await fetch(assetUrl(concertCode, "index.json"), {
+  const response = await fetch(assetUrl(assetFolder, "index.json"), {
     headers: { "Cache-Control": "no-cache" },
   });
-  if (response.status === 404) throw new InvalidConcertCodeError(concertCode);
+  if (response.status === 404) throw new InvalidConcertCodeError(assetFolder);
   if (!response.ok) throw new Error(`index.json request failed with HTTP ${response.status}`);
 
   const index: unknown = await response.json();
@@ -93,12 +97,12 @@ function concertsFolder() {
  * files, e.g. files from another concert, files no longer in its index, or
  * files from an app run that was closed without pressing Leave.
  */
-function removeStaleAssets(concertCode: string, files: string[]) {
+function removeStaleAssets(assetFolder: string, files: string[]) {
   const root = concertsFolder();
   if (!root.exists) return;
 
   for (const entry of root.list()) {
-    if (entry.name !== concertCode || !(entry instanceof Directory)) {
+    if (entry.name !== assetFolder || !(entry instanceof Directory)) {
       entry.delete();
       continue;
     }
@@ -125,22 +129,22 @@ export function deleteConcertAssets() {
  *
  * expo-file-system has no web support, so on web the remote URLs are used directly.
  *
- * @throws InvalidConcertCodeError if there's no concert with this code.
+ * @throws InvalidConcertCodeError if the bucket has no index.json in that folder.
  */
-export async function downloadConcertAssets(concertCode: string): Promise<AssetUris> {
-  const files = await fetchConcertFiles(concertCode);
+export async function downloadConcertAssets(assetFolder: string): Promise<AssetUris> {
+  const files = await fetchConcertFiles(assetFolder);
 
   if (Platform.OS === "web") {
-    return Object.fromEntries(files.map((name) => [name, assetUrl(concertCode, name)]));
+    return Object.fromEntries(files.map((name) => [name, assetUrl(assetFolder, name)]));
   }
 
   try {
-    removeStaleAssets(concertCode, files);
+    removeStaleAssets(assetFolder, files);
   } catch (e) {
     // Leftover files only waste space, so don't let them block joining.
     console.warn("Couldn't remove stale concert files", e);
   }
-  const folder = new Directory(concertsFolder(), concertCode);
+  const folder = new Directory(concertsFolder(), assetFolder);
   folder.create({ idempotent: true, intermediates: true });
 
   const entries = await Promise.all(
@@ -148,7 +152,7 @@ export async function downloadConcertAssets(concertCode: string): Promise<AssetU
       const target = new File(folder, name);
       const file = target.exists
         ? target
-        : await File.downloadFileAsync(assetUrl(concertCode, name), target);
+        : await File.downloadFileAsync(assetUrl(assetFolder, name), target);
       return [name, file.uri] as const;
     }),
   );

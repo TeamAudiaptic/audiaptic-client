@@ -19,6 +19,7 @@ import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 import type { LogEntry } from "@/lib/eventProcessor";
+import type { ConnectionState } from "@/lib/serverSessionSource";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
 import { getImage } from "@/lib/outputs/imageEvent";
 
@@ -35,7 +36,8 @@ const SPINNER_COLOR = "#ffffff";
  * lose its state.
  */
 export default function Index() {
-  const { active, log, status, isJoined, error, assets, join, leave } = useEventProcessor();
+  const { active, log, status, isJoined, connection, error, assets, join, leave } =
+    useEventProcessor();
   useHapticOutput(active.haptic, isJoined);
   const torchState = useTorchTransition(active.torch, isJoined);
   // Called before the early return: hooks must run on every render.
@@ -54,7 +56,12 @@ export default function Index() {
       style={eventColor ? { backgroundColor: eventColor } : undefined}
     >
       <TorchController torchState={torchState} />
-      <ConcertView image={getImage(active.image, assets)} log={log} onLeave={leave} />
+      <ConcertView
+        image={getImage(active.image, assets)}
+        log={log}
+        connection={connection}
+        onLeave={leave}
+      />
       {/* Last, so the full-screen video draws on top of everything else. */}
       <VideoOutput videoEvent={active.video} assets={assets} />
     </View>
@@ -94,7 +101,7 @@ function JoinView({ onJoin, error, isDownloading }: JoinViewProps) {
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="go"
-          placeholder="e.g. concert-1"
+          placeholder="Enter code"
           className="join-input"
         />
         <Pressable
@@ -118,13 +125,22 @@ function JoinView({ onJoin, error, isDownloading }: JoinViewProps) {
 interface ConcertViewProps {
   image: ReturnType<typeof getImage>;
   log: LogEntry[];
+  connection: ConnectionState | null;
   onLeave: () => void;
 }
 
-/** Shown while joined: the image area, a short log and a Leave button. */
-function ConcertView({ image, log, onLeave }: ConcertViewProps) {
+const CONNECTION_LABELS: Record<ConnectionState, string> = {
+  connecting: "Connecting to server…",
+  connected: "Connected",
+  reconnecting: "Connection lost, reconnecting…",
+};
+
+/** Shown while joined: connection state, the image area, a short log and a Leave button. */
+function ConcertView({ image, log, connection, onLeave }: ConcertViewProps) {
   return (
     <View className="concert-content">
+      {connection && <Text className="connection-status">{CONNECTION_LABELS[connection]}</Text>}
+
       <View className="image-frame">
         {image ? (
           <Image
