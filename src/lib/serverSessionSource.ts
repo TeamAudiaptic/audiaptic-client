@@ -4,8 +4,8 @@
  *
  *   Max ──► /api/performer ──► server ──► /api/audience/{code} ──► here ──► processor.receive()
  *
- * The server URL comes from EXPO_PUBLIC_SERVER_URL (.env, or .env.local to
- * override it); which source to use comes from data/concertCode.json.
+ * The server URL comes from EXPO_PUBLIC_SERVER_URL in .env (copy .env.example);
+ * which source to use comes from data/concertCode.json.
  * A dropped connection is retried after 1 s, 2 s, 4 s … (at most 10 s apart).
  * The processor ignores events it already has, so a resent event can't play twice.
  */
@@ -26,7 +26,7 @@ export const SERVER_URL: string = (process.env.EXPO_PUBLIC_SERVER_URL ?? "").rep
 
 if (!SERVER_URL) {
   console.error(
-    "EXPO_PUBLIC_SERVER_URL is not set. Add it to .env (or .env.local), then reload the app.",
+    "EXPO_PUBLIC_SERVER_URL is not set. Copy .env.example to .env, set it, then reload the app.",
   );
 }
 

@@ -192,7 +192,7 @@ function defaultPerformerUrl() {
   }
   const serverUrl = process.env.EXPO_PUBLIC_SERVER_URL;
   if (!serverUrl) {
-    fail("EXPO_PUBLIC_SERVER_URL is not set. Add it to .env (or .env.local), or pass --url.");
+    fail("EXPO_PUBLIC_SERVER_URL is not set. Copy .env.example to .env and set it, or pass --url.");
   }
   const server = serverUrl.replace("//10.0.2.2", "//localhost").replace(/\/+$/, "");
   return `${server}/api/performer`;

@@ -18,7 +18,11 @@ That's all you need to get started. The app runs in [Expo Go](https://expo.dev/g
    npm install
    ```
 
-2. Point the app at your server (optional; see [Configuration](#configuration))
+2. Create your `.env` from the template, then set your server address (see [Configuration](#configuration))
+
+   ```bash
+   cp .env.example .env
+   ```
 
 3. Start the dev server
 
@@ -39,11 +43,17 @@ The API server's address is set by an environment variable:
 |---|---|---|
 | `EXPO_PUBLIC_SERVER_URL` | Base URL of the API server, with no path | `ws://192.168.1.42:3000` |
 
-The default is in [`.env`](.env), which is committed. To use a different server on your machine, don't edit `.env`. Create a **`.env.local`** file instead. It's gitignored and takes priority:
+Set it in a **`.env`** file in the project root. `.env` is gitignored, so each person keeps their own copy. Start from the committed template, [`.env.example`](.env.example):
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 EXPO_PUBLIC_SERVER_URL=ws://192.168.1.42:3000
 ```
+
+If you add a new variable, add it to `.env.example` too so others know to set it. Don't commit `.env`.
 
 - **Server on another computer on the same Wi-Fi:** use that computer's IP, e.g. `ws://192.168.1.42:3000`. This works from phones and the emulator.
 - **Server on this computer:** `ws://10.0.2.2:3000` works from the Android emulator only.
