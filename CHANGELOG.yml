@@ -113,3 +113,33 @@ entries:
     emoji: ✨
     label: Feature
     message: Caption events
+- id: 10
+  pr: 45
+  author: dcr8024
+  time: '2026-11-12T22:55:55+00:00'
+  url: https://github.com/TeamAudiaptic/audiaptic-client/pull/45
+  changes:
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Receive live performance events from the server's audience WebSocket, reconnecting automatically if the connection drops
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Show the server connection state (connecting, connected, reconnecting) during a concert
+  - type: feature
+    emoji: ✨
+    label: Feature
+    message: Add `npm run send-test` to play a test session through the server
+  - type: fix
+    emoji: 🐛
+    label: Fix
+    message: Accept the server's `execTimestamp` field so events relayed by the server play at the right time
+  - type: docs
+    emoji: 📝
+    label: Documentation
+    message: Explain server configuration and `.env` setup in the README
+  - type: breaking
+    emoji: 💥
+    label: Breaking change
+    message: 'Copy `.env.example` to `.env` and set `EXPO_PUBLIC_SERVER_URL` before running the app. `concertCode.json` now uses `concerts: [{ code, assetFolder }]` instead of `concertCodes`, and the join code for concert-1 is now `davhi`.'
