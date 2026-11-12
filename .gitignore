@@ -34,7 +34,8 @@ yarn-error.*
 # editor
 .vscode/
 
-# local env files
+# local env files (copy .env.example to .env)
+.env
 .env*.local
 
 # typescript

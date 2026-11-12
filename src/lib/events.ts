@@ -39,6 +39,17 @@ interface BaseEnvelope<T extends string> {
   epochTimestamp?: number | null;
   /** Ms after the Start event executes at which to start the event. Optional. */
   relativeTimestamp?: number | null;
+  /**
+   * Older name for `epochTimestamp`, still required by the server's validator
+   * (audiaptic-server/api/src/api-schemas/baseEvent.api.schema.ts). Used only
+   * when `epochTimestamp` is missing. Remove once the server follows the docs.
+   */
+  execTimestamp?: number | null;
+}
+
+/** The event's absolute execution time (Unix ms), or 0 when it has none. */
+export function epochTimeOf(event: IncomingEvent): number {
+  return event.epochTimestamp || event.execTimestamp || 0;
 }
 
 interface EventEnvelope<T extends Channel, P> extends BaseEnvelope<T> {
@@ -164,7 +175,8 @@ function hasEnvelope(value: unknown): value is BaseEnvelope<string> {
     typeof event.sequence === "number" &&
     isOptionalNumber(event.sentTimestamp) &&
     isOptionalNumber(event.epochTimestamp) &&
-    isOptionalNumber(event.relativeTimestamp)
+    isOptionalNumber(event.relativeTimestamp) &&
+    isOptionalNumber(event.execTimestamp)
   );
 }
 

@@ -22,6 +22,7 @@ import type { LogEntry } from "@/lib/eventProcessor";
 import { getCaption } from "@/lib/outputs/captionEvent";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
 import { getImage } from "@/lib/outputs/imageEvent";
+import type { ConnectionState } from "@/lib/serverSessionSource";
 
 // Styles live in src/styles/*.css. expo-image isn't a core component, so
 // NativeWind has to be told to turn its className into a style.
@@ -36,7 +37,8 @@ const SPINNER_COLOR = "#ffffff";
  * lose its state.
  */
 export default function Index() {
-  const { active, log, status, isJoined, error, assets, join, leave } = useEventProcessor();
+  const { active, log, status, isJoined, connection, error, assets, join, leave } =
+    useEventProcessor();
   useHapticOutput(active.haptic, isJoined);
   const torchState = useTorchTransition(active.torch, isJoined);
   // Called before the early return: hooks must run on every render.
@@ -59,6 +61,7 @@ export default function Index() {
         image={getImage(active.image, assets)}
         caption={getCaption(active.caption)}
         log={log}
+        connection={connection}
         onLeave={leave}
       />
       {/* Last, so the full-screen video draws on top of everything else. */}
@@ -100,7 +103,7 @@ function JoinView({ onJoin, error, isDownloading }: JoinViewProps) {
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="go"
-          placeholder="e.g. concert-1"
+          placeholder="Enter code"
           className="join-input"
         />
         <Pressable
@@ -125,13 +128,22 @@ interface ConcertViewProps {
   image: ReturnType<typeof getImage>;
   caption: string | null;
   log: LogEntry[];
+  connection: ConnectionState | null;
   onLeave: () => void;
 }
 
-/** Shown while joined: the image area, captions box, a short log and a Leave button. */
-function ConcertView({ image, caption, log, onLeave }: ConcertViewProps) {
+const CONNECTION_LABELS: Record<ConnectionState, string> = {
+  connecting: "Connecting to server…",
+  connected: "Connected",
+  reconnecting: "Connection lost, reconnecting…",
+};
+
+/** Shown while joined: connection state, the image area, captions box, a short log and a Leave button. */
+function ConcertView({ image, caption, log, connection, onLeave }: ConcertViewProps) {
   return (
     <View className="concert-content">
+      {connection && <Text className="connection-status">{CONNECTION_LABELS[connection]}</Text>}
+
       <View className="image-frame">
         {image ? (
           <Image

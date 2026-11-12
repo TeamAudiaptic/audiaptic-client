@@ -28,6 +28,7 @@ import {
   type SessionEvent,
   type StartEvent,
   endsAt,
+  epochTimeOf,
   isIncomingEvent,
 } from "./events";
 
@@ -131,7 +132,7 @@ export function createEventProcessor() {
    * all mean "not set".
    */
   function execTimeOf(event: SessionEvent): number | null {
-    const epoch = event.epochTimestamp || 0;
+    const epoch = epochTimeOf(event);
     const relative = event.relativeTimestamp || 0;
 
     // A future epoch timestamp takes precedence over a relative one.
@@ -196,7 +197,7 @@ export function createEventProcessor() {
     if (input.type === "start") {
       // Start can't be relative to itself, so only its epoch timestamp counts.
       // A past epoch is kept as-is so a late joiner still lines up with everyone else.
-      const startedAt = input.epochTimestamp || Date.now();
+      const startedAt = epochTimeOf(input) || Date.now();
       return runAt(startedAt, () => startPerformance(input, startedAt));
     }
 
