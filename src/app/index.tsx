@@ -19,9 +19,10 @@ import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useHapticOutput } from "@/hooks/useHapticOutput";
 import { useTorchTransition } from "@/hooks/useTorchTransition";
 import type { LogEntry } from "@/lib/eventProcessor";
-import type { ConnectionState } from "@/lib/serverSessionSource";
+import { getCaption } from "@/lib/outputs/captionEvent";
 import { getBackgroundColor } from "@/lib/outputs/colorEvent";
 import { getImage } from "@/lib/outputs/imageEvent";
+import type { ConnectionState } from "@/lib/serverSessionSource";
 
 // Styles live in src/styles/*.css. expo-image isn't a core component, so
 // NativeWind has to be told to turn its className into a style.
@@ -58,6 +59,7 @@ export default function Index() {
       <TorchController torchState={torchState} />
       <ConcertView
         image={getImage(active.image, assets)}
+        caption={getCaption(active.caption)}
         log={log}
         connection={connection}
         onLeave={leave}
@@ -124,6 +126,7 @@ function JoinView({ onJoin, error, isDownloading }: JoinViewProps) {
 
 interface ConcertViewProps {
   image: ReturnType<typeof getImage>;
+  caption: string | null;
   log: LogEntry[];
   connection: ConnectionState | null;
   onLeave: () => void;
@@ -135,8 +138,8 @@ const CONNECTION_LABELS: Record<ConnectionState, string> = {
   reconnecting: "Connection lost, reconnecting…",
 };
 
-/** Shown while joined: connection state, the image area, a short log and a Leave button. */
-function ConcertView({ image, log, connection, onLeave }: ConcertViewProps) {
+/** Shown while joined: connection state, the image area, captions box, a short log and a Leave button. */
+function ConcertView({ image, caption, log, connection, onLeave }: ConcertViewProps) {
   return (
     <View className="concert-content">
       {connection && <Text className="connection-status">{CONNECTION_LABELS[connection]}</Text>}
@@ -151,6 +154,14 @@ function ConcertView({ image, log, connection, onLeave }: ConcertViewProps) {
           />
         ) : (
           <Text className="image-frame-placeholder">No image showing</Text>
+        )}
+      </View>
+
+      <View className="caption-box">
+        {caption ? (
+          <Text className="caption-text">{caption}</Text>
+        ) : (
+          <Text className="caption-placeholder">No caption showing</Text>
         )}
       </View>
 
