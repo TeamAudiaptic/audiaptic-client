@@ -5,7 +5,7 @@
  * https://teamaudiaptic.github.io/audiaptic-docs/docs/spikes/time-sync
  *
  * This is a TypeScript port of the Max connection patch's timeSync.js. Keep
- * the logic identical to that file: the spike specifies one algorithm for
+ * the logic identical to that file (only RESYNC_INTERVAL_MS differs): the spike specifies one algorithm for
  * both, and the shared vectors in timeSync.vectors.json check both against it.
  * App-specific wiring (the server request, when to re-sync) lives in
  * clientTimeSync.ts, not here.
@@ -23,7 +23,9 @@
 
 export const SAMPLES_PER_BURST = 6;
 const MAX_CONSECUTIVE_FAILURES = 2;
-export const RESYNC_INTERVAL_MS = 60000;
+// The client re-syncs every 5 s; Max and the spike use 60 s. This is the one
+// intended difference from timeSync.js.
+export const RESYNC_INTERVAL_MS = 5000;
 export const RETRY_INTERVAL_MS = 10000;
 export const MAX_OFFSET_AGE_MS = 5 * 60000;
 const ACCEPT_ERROR_FACTOR = 2;
