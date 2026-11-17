@@ -58,6 +58,8 @@ If you add a new variable, add it to `.env.example` too so others know to set it
 - **Server on another computer on the same Wi-Fi:** use that computer's IP, e.g. `ws://192.168.1.42:3000`. This works from phones and the emulator.
 - **Server on this computer:** `ws://10.0.2.2:3000` works from the Android emulator only.
 
+The app also uses this server's `GET /api/time` (over `http`/`https` instead of `ws`/`wss`) to sync its clock with the server, so events play at the same moment on every phone. The current offset is shown above the event log while you're in a concert. See the [time sync spike](https://teamaudiaptic.github.io/audiaptic-docs/docs/spikes/time-sync) for how it works.
+
 After changing the value, reload the app (press `r` in the terminal). You don't need to restart the dev server. `npm run send-test` reads the same variable.
 
 > The value is built into the app bundle, so anyone with the app can read it. Never put secrets in `EXPO_PUBLIC_` variables.

@@ -21,10 +21,15 @@
  *   file now, the live server later) just calls `receive()` for each one.
  * - The UI never reads internals; it subscribes and gets a fresh, immutable
  *   `ProcessorState` object every time something changes.
+ * - Every time comes from the `now` clock passed in, which for the live server
+ *   is the server's clock (clientTimeSync.ts), never the phone's `Date.now()`.
+ *   Until that clock is ready, received events are held rather than scheduled
+ *   on the wrong clock (see setClockReady).
  */
 
 import {
   type Channel,
+  type IncomingEvent,
   type SessionEvent,
   type StartEvent,
   endsAt,
@@ -44,6 +49,7 @@ export type Outcome =
   | "skipped: duplicate" // an event with this eventId was already received
   | "skipped: expired" // it would already be over by the time it arrived
   | "waiting for start" // relative timestamp, but the Start event hasn't executed yet
+  | "waiting for clock sync" // received before the clock was synced with the server
   | "started" // a Start event executed; relative timestamps count from here
   | "rejected: invalid"; // the message wasn't a usable event
 
@@ -79,24 +85,39 @@ const INITIAL_STATE: ProcessorState = {
   log: [],
 };
 
+export interface EventProcessorOptions {
+  /** The clock event times are measured against (epoch ms). Defaults to `Date.now`. */
+  now?: () => number;
+}
+
+/** A pending runAt(): kept so its delay can be recomputed if the clock jumps. */
+interface ScheduledTask {
+  time: number;
+  task: () => void;
+}
+
 /**
  * Creates a processor. Each joined session should use one processor.
  *
  * @example
- * const processor = createEventProcessor();
+ * const processor = createEventProcessor({ now: serverNow });
  * const unsubscribe = processor.subscribe((state) => console.log(state.active));
  * processor.receive(eventFromServer);
  */
-export function createEventProcessor() {
+export function createEventProcessor({ now = Date.now }: EventProcessorOptions = {}) {
   // Private state lives in this closure; only the returned functions can touch it.
   let state = INITIAL_STATE;
   const listeners = new Set<Listener>();
   const seenIds = new Set<string>();
-  const timers = new Set<ReturnType<typeof setTimeout>>();
+  const timers = new Map<ReturnType<typeof setTimeout>, ScheduledTask>();
   /** When the Start event executed (Unix ms), or `null` before it has. */
   let performanceStartedAt: number | null = null;
   /** Relative-timestamp events received before the Start event executed. */
   let waiting: SessionEvent[] = [];
+  /** False while the clock isn't synced yet; events received then are held. */
+  let clockReady = true;
+  /** Events received while the clock wasn't ready, in arrival order. */
+  let held: IncomingEvent[] = [];
 
   /** Swap in a new state object and tell every subscriber. */
   function setState(next: ProcessorState) {
@@ -109,7 +130,7 @@ export function createEventProcessor() {
   }
 
   function log(eventId: string, outcome: Outcome) {
-    const entry = { at: Date.now(), eventId, outcome };
+    const entry = { at: now(), eventId, outcome };
     setState({ ...state, log: [entry, ...state.log].slice(0, MAX_LOG_ENTRIES) });
   }
 
@@ -122,8 +143,8 @@ export function createEventProcessor() {
     const timer = setTimeout(() => {
       timers.delete(timer);
       task();
-    }, Math.max(0, time - Date.now()));
-    timers.add(timer);
+    }, Math.max(0, time - now()));
+    timers.set(timer, { time, task });
   }
 
   /**
@@ -136,15 +157,15 @@ export function createEventProcessor() {
     const relative = event.relativeTimestamp || 0;
 
     // A future epoch timestamp takes precedence over a relative one.
-    if (epoch > Date.now()) return epoch;
+    if (epoch > now()) return epoch;
     if (relative) return performanceStartedAt === null ? null : performanceStartedAt + relative;
     // A past epoch timestamp still counts, so the expiry check can catch it.
-    return epoch || Date.now();
+    return epoch || now();
   }
 
   /** Plays `event` at `execAt`, unless it would already be over. */
   function schedule(event: SessionEvent, execAt: number) {
-    if (endsAt(event, execAt) <= Date.now()) return log(event.eventId, "skipped: expired");
+    if (endsAt(event, execAt) <= now()) return log(event.eventId, "skipped: expired");
     runAt(execAt, () => start(event, execAt));
   }
 
@@ -194,10 +215,19 @@ export function createEventProcessor() {
     if (seenIds.has(input.eventId)) return log(input.eventId, "skipped: duplicate");
     seenIds.add(input.eventId);
 
+    if (!clockReady) {
+      held.push(input);
+      return log(input.eventId, "waiting for clock sync");
+    }
+    process(input);
+  }
+
+  /** Schedules a valid, new event against the clock. */
+  function process(input: IncomingEvent) {
     if (input.type === "start") {
       // Start can't be relative to itself, so only its epoch timestamp counts.
       // A past epoch is kept as-is so a late joiner still lines up with everyone else.
-      const startedAt = epochTimeOf(input) || Date.now();
+      const startedAt = epochTimeOf(input) || now();
       return runAt(startedAt, () => startPerformance(input, startedAt));
     }
 
@@ -207,6 +237,30 @@ export function createEventProcessor() {
       return log(input.eventId, "waiting for start");
     }
     schedule(input, execAt);
+  }
+
+  /**
+   * Whether the clock can be trusted yet. While false, received events are
+   * held; setting it back to true schedules them, in the order they arrived.
+   */
+  function setClockReady(ready: boolean) {
+    clockReady = ready;
+    if (!ready) return;
+    const released = held;
+    held = [];
+    released.forEach(process);
+  }
+
+  /**
+   * Recomputes every pending timer's delay against the current clock. Call
+   * after the clock jumps (e.g. a new server offset), so scheduled events
+   * still run at their intended server time rather than the old one.
+   */
+  function rescheduleTimers() {
+    const pending = [...timers.values()];
+    timers.forEach((_, timer) => clearTimeout(timer));
+    timers.clear();
+    pending.forEach(({ time, task }) => runAt(time, task));
   }
 
   /**
@@ -222,15 +276,24 @@ export function createEventProcessor() {
 
   /** Cancels everything scheduled and goes back to the empty state. */
   function reset() {
-    timers.forEach(clearTimeout);
+    timers.forEach((_, timer) => clearTimeout(timer));
     timers.clear();
     seenIds.clear();
     performanceStartedAt = null;
     waiting = [];
+    clockReady = true;
+    held = [];
     setState(INITIAL_STATE);
   }
 
-  return { receive, subscribe, getState: () => state, reset };
+  return {
+    receive,
+    subscribe,
+    getState: () => state,
+    reset,
+    setClockReady,
+    rescheduleTimers,
+  };
 }
 
 export type EventProcessor = ReturnType<typeof createEventProcessor>;

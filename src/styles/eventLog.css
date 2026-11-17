@@ -8,4 +8,9 @@
   .event-log-line {
     @apply font-mono text-[10px] text-white;
   }
+
+  /* Server clock offset and sync age (ClockStatus). */
+  .clock-status {
+    @apply w-full font-mono text-[10px] text-white/70;
+  }
 }
