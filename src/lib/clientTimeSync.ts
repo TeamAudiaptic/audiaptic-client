@@ -8,7 +8,7 @@
  *
  * When to sync is decided by useEventProcessor: on join, when the socket
  * reconnects, and when the app returns to the foreground. While started, the
- * controller also re-syncs every 5 s and when it sees the phone's clock change.
+ * controller also re-syncs every 60 s and when it sees the phone's clock change.
  */
 
 import { SERVER_URL } from "./serverSessionSource";

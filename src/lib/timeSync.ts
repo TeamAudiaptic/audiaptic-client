@@ -5,8 +5,9 @@
  * https://teamaudiaptic.github.io/audiaptic-docs/docs/spikes/time-sync
  *
  * This is a TypeScript port of the Max connection patch's timeSync.js. Keep
- * the logic identical to that file (only RESYNC_INTERVAL_MS differs): the spike specifies one algorithm for
- * both, and the shared vectors in timeSync.vectors.json check both against it.
+ * the logic and constants identical to that file: the spike specifies one
+ * algorithm for both, and the shared vectors in timeSync.vectors.json check
+ * both against it.
  * App-specific wiring (the server request, when to re-sync) lives in
  * clientTimeSync.ts, not here.
  *
@@ -21,11 +22,10 @@
  * - wallOffset: derived on demand; converts wall-clock epoch times.
  */
 
-export const SAMPLES_PER_BURST = 6;
+export const MAX_SAMPLES_PER_BURST = 6;
+export const STABLE_DELAY_MS = 2;
 const MAX_CONSECUTIVE_FAILURES = 2;
-// The client re-syncs every 5 s; Max and the spike use 60 s. This is the one
-// intended difference from timeSync.js.
-export const RESYNC_INTERVAL_MS = 20000;
+export const RESYNC_INTERVAL_MS = 60000;
 export const RETRY_INTERVAL_MS = 10000;
 export const MAX_OFFSET_AGE_MS = 5 * 60000;
 const ACCEPT_ERROR_FACTOR = 2;
@@ -104,14 +104,35 @@ export function computeSample(t1: number, serverTimestamp: number, t4: number): 
  * @param samples Samples in the order they were taken.
  * @returns The best sample, or null if none are usable.
  */
-export function selectBestSample(samples: (Sample | null)[]): Sample | null {
-  let best: Sample | null = null;
+export function selectBestSample<S extends Pick<Sample, "delay">>(samples: (S | null)[]): S | null {
+  let best: S | null = null;
   for (const sample of samples.slice(1)) {
     if (sample !== null && (best === null || sample.delay < best.delay)) {
       best = sample;
     }
   }
   return best;
+}
+
+/**
+ * Whether a burst can stop. It stops early once the network looks steady: the
+ * latest sample's delay is within STABLE_DELAY_MS of the best earlier usable
+ * sample, so more samples are unlikely to find a faster round trip. Otherwise
+ * it stops at MAX_SAMPLES_PER_BURST. The warm-up sample never counts, so a
+ * burst takes at least 3 requests.
+ *
+ * @param samples Samples in the order they were taken.
+ */
+export function isBurstComplete(samples: (Pick<Sample, "delay"> | null)[]): boolean {
+  if (samples.length >= MAX_SAMPLES_PER_BURST) {
+    return true;
+  }
+  const latest = samples[samples.length - 1];
+  if (samples.length < 3 || latest === null || latest === undefined) {
+    return false;
+  }
+  const earlier = selectBestSample(samples.slice(0, -1));
+  return earlier !== null && Math.abs(latest.delay - earlier.delay) <= STABLE_DELAY_MS;
 }
 
 /**
@@ -203,7 +224,7 @@ export function createTimeSync(options: TimeSyncOptions) {
     let consecutiveFailures = 0;
     let lastFailure = "no usable samples";
 
-    while (samples.length < SAMPLES_PER_BURST && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+    while (!isBurstComplete(samples) && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
       try {
         samples.push(await takeSample());
         consecutiveFailures = 0;
