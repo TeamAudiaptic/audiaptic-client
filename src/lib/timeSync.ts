@@ -25,7 +25,7 @@ export const SAMPLES_PER_BURST = 6;
 const MAX_CONSECUTIVE_FAILURES = 2;
 // The client re-syncs every 5 s; Max and the spike use 60 s. This is the one
 // intended difference from timeSync.js.
-export const RESYNC_INTERVAL_MS = 5000;
+export const RESYNC_INTERVAL_MS = 20000;
 export const RETRY_INTERVAL_MS = 10000;
 export const MAX_OFFSET_AGE_MS = 5 * 60000;
 const ACCEPT_ERROR_FACTOR = 2;

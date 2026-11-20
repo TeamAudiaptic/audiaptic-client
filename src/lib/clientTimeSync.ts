@@ -57,6 +57,25 @@ const listeners = new Set<Listener>();
 
 let lastResult: SyncResult | null = null;
 
+/**
+ * Logs every burst's outcome, e.g.
+ * "Clock sync accepted: offset +1398.8 ms ±23.1 ms (moved +1398.8 ms)".
+ * The offset is server time minus this device's clock. The spike's
+ * validation starts with collecting these errors from every device.
+ */
+function logBurst(result: SyncResult, shiftMs: number) {
+  const { status } = result;
+  // A failed burst was already warned about, with its reason
+  if (result.reason || !status.synced) return;
+
+  const signed = (ms: number) => `${ms >= 0 ? "+" : ""}${ms.toFixed(1)}`;
+  const outcome = result.accepted ? "accepted" : "rejected, kept the previous offset";
+  console.log(
+    `Clock sync ${outcome}: offset ${signed(status.wallOffset)} ms ±${status.error.toFixed(1)} ms` +
+      (result.accepted ? ` (moved ${signed(shiftMs)} ms)` : ""),
+  );
+}
+
 /** Server time minus the monotonic clock: what serverNow() adds right now. */
 function currentOffset(): number {
   return timeSync.serverNow() - performance.now();
@@ -73,6 +92,7 @@ export const timeSync = createTimeSync({
     const shiftMs = result.accepted ? offsetAfter - offsetBefore : 0;
     offsetBefore = offsetAfter;
     if (result.reason) console.warn(result.reason);
+    logBurst(result, shiftMs);
     listeners.forEach((listener) => listener({ ...result, shiftMs }));
   },
 });
