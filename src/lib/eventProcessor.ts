@@ -10,7 +10,8 @@
  * The execution time comes from the event's timestamps (see execTimeOf):
  * a future `epochTimestamp`, else Start time + `relativeTimestamp`, else now.
  * Relative events that arrive before the Start event has executed wait in
- * `waiting` until it does.
+ * `waiting` until it does. A later Start event cancels the relative events
+ * not yet played and anchors those sent after it (see replaceTimeline).
  *
  * Key ideas:
  * - A *channel* is one output: haptic, torch, color, image, audio, video or caption. Each channel shows at
@@ -51,6 +52,7 @@ export type Outcome =
   | "waiting for start" // relative timestamp, but the Start event hasn't executed yet
   | "waiting for clock sync" // received before the clock was synced with the server
   | "started" // a Start event executed; relative timestamps count from here
+  | "cancelled: new start" // a later Start event replaced the timeline this relative event was on
   | "rejected: invalid"; // the message wasn't a usable event
 
 export interface LogEntry {
@@ -90,10 +92,18 @@ export interface EventProcessorOptions {
   now?: () => number;
 }
 
+/**
+ * What a pending timer belongs to, so a later Start event can cancel the
+ * previous timeline: a Start that hasn't executed yet, or the start of an
+ * event timed relative to Start.
+ */
+type TimelineTag = { kind: "start" } | { kind: "relative"; eventId: string };
+
 /** A pending runAt(): kept so its delay can be recomputed if the clock jumps. */
 interface ScheduledTask {
   time: number;
   task: () => void;
+  timeline?: TimelineTag;
 }
 
 /**
@@ -110,8 +120,10 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
   const listeners = new Set<Listener>();
   const seenIds = new Set<string>();
   const timers = new Map<ReturnType<typeof setTimeout>, ScheduledTask>();
-  /** When the Start event executed (Unix ms), or `null` before it has. */
+  /** When the current Start event executed (Unix ms), or `null` before it has. */
   let performanceStartedAt: number | null = null;
+  /** Whether any Start event has been received, so the next one replaces its timeline. */
+  let startReceived = false;
   /** Relative-timestamp events received before the Start event executed. */
   let waiting: SessionEvent[] = [];
   /** False while the clock isn't synced yet; events received then are held. */
@@ -139,34 +151,40 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
    * passed (so events that arrive a little late still play). Timers are
    * tracked so `reset()` can cancel them all.
    */
-  function runAt(time: number, task: () => void) {
+  function runAt(time: number, task: () => void, timeline?: TimelineTag) {
     const timer = setTimeout(() => {
       timers.delete(timer);
       task();
     }, Math.max(0, time - now()));
-    timers.set(timer, { time, task });
+    timers.set(timer, { time, task, timeline });
+  }
+
+  /**
+   * Whether `event` is timed relative to Start: it has a relativeTimestamp and
+   * no future epochTimestamp, which would take precedence. Missing, `null`
+   * and 0 timestamps all mean "not set".
+   */
+  function followsStart(event: SessionEvent): boolean {
+    return !(epochTimeOf(event) > now()) && !!event.relativeTimestamp;
   }
 
   /**
    * When an event should execute (Unix ms), or `null` if it is relative to a
-   * Start event that hasn't executed yet. Missing, `null` and 0 timestamps
-   * all mean "not set".
+   * Start event that hasn't executed yet.
    */
   function execTimeOf(event: SessionEvent): number | null {
-    const epoch = epochTimeOf(event);
-    const relative = event.relativeTimestamp || 0;
-
-    // A future epoch timestamp takes precedence over a relative one.
-    if (epoch > now()) return epoch;
-    if (relative) return performanceStartedAt === null ? null : performanceStartedAt + relative;
-    // A past epoch timestamp still counts, so the expiry check can catch it.
-    return epoch || now();
+    if (followsStart(event)) {
+      return performanceStartedAt === null ? null : performanceStartedAt + event.relativeTimestamp!;
+    }
+    // A future epoch, or a past one so the expiry check can catch it, or now.
+    return epochTimeOf(event) || now();
   }
 
   /** Plays `event` at `execAt`, unless it would already be over. */
-  function schedule(event: SessionEvent, execAt: number) {
+  function schedule(event: SessionEvent, execAt: number, relative: boolean) {
     if (endsAt(event, execAt) <= now()) return log(event.eventId, "skipped: expired");
-    runAt(execAt, () => start(event, execAt));
+    const timeline: TimelineTag | undefined = relative ? { kind: "relative", eventId: event.eventId } : undefined;
+    runAt(execAt, () => start(event, execAt), timeline);
   }
 
   /** Called when a Start event executes: anchor relative timestamps and release waiting events. */
@@ -176,7 +194,29 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
 
     const released = waiting;
     waiting = [];
-    released.forEach((waitingEvent) => schedule(waitingEvent, execTimeOf(waitingEvent)!));
+    released.forEach((waitingEvent) => schedule(waitingEvent, execTimeOf(waitingEvent)!, true));
+  }
+
+  /**
+   * Called when a Start event arrives after an earlier one: drops the earlier
+   * timeline so only events sent after the new Start count from it.
+   * - Relative events not yet played are cancelled, including any still
+   *   waiting for the earlier Start, and that Start if it hasn't executed.
+   * - Relative events that arrive from now on wait for the new Start.
+   * - Events timed by epoch or with no time, and anything already playing,
+   *   are left alone.
+   */
+  function replaceTimeline() {
+    timers.forEach(({ timeline }, timer) => {
+      if (!timeline) return;
+      clearTimeout(timer);
+      timers.delete(timer);
+      if (timeline.kind === "relative") log(timeline.eventId, "cancelled: new start");
+    });
+
+    waiting.forEach((event) => log(event.eventId, "cancelled: new start"));
+    waiting = [];
+    performanceStartedAt = null;
   }
 
   /** Called at an event's execution time: resolve the conflict, then play it. */
@@ -225,10 +265,15 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
   /** Schedules a valid, new event against the clock. */
   function process(input: IncomingEvent) {
     if (input.type === "start") {
+      // A later Start replaces the timeline. Relative events that arrived
+      // before the first Start are kept, and count from it.
+      if (startReceived) replaceTimeline();
+      startReceived = true;
+
       // Start can't be relative to itself, so only its epoch timestamp counts.
       // A past epoch is kept as-is so a late joiner still lines up with everyone else.
       const startedAt = epochTimeOf(input) || now();
-      return runAt(startedAt, () => startPerformance(input, startedAt));
+      return runAt(startedAt, () => startPerformance(input, startedAt), { kind: "start" });
     }
 
     const execAt = execTimeOf(input);
@@ -236,7 +281,7 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
       waiting.push(input);
       return log(input.eventId, "waiting for start");
     }
-    schedule(input, execAt);
+    schedule(input, execAt, followsStart(input));
   }
 
   /**
@@ -260,7 +305,7 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
     const pending = [...timers.values()];
     timers.forEach((_, timer) => clearTimeout(timer));
     timers.clear();
-    pending.forEach(({ time, task }) => runAt(time, task));
+    pending.forEach(({ time, task, timeline }) => runAt(time, task, timeline));
   }
 
   /**
@@ -280,6 +325,7 @@ export function createEventProcessor({ now = Date.now }: EventProcessorOptions =
     timers.clear();
     seenIds.clear();
     performanceStartedAt = null;
+    startReceived = false;
     waiting = [];
     clockReady = true;
     held = [];
