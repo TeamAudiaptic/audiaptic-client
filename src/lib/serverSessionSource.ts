@@ -1,6 +1,6 @@
 /**
  * Live event source: connects to the server's audience socket and hands every
- * event it receives to the processor.
+ * event it receives to the processor, unpacking frames that hold a list.
  *
  *   Max ──► /api/performer ──► server ──► /api/audience/{code} ──► here ──► processor.receive()
  *
@@ -74,13 +74,18 @@ export function startServerSession(
     };
 
     socket.onmessage = (message) => {
-      let event: unknown = null;
+      let frame: unknown = null;
       try {
-        event = JSON.parse(String(message.data));
+        frame = JSON.parse(String(message.data));
       } catch {
         // Not JSON: passing null makes the processor log it as invalid.
       }
-      processor.receive(event);
+      // A frame is one event or a list of events (shared-envelope.mdx, Frames).
+      // List events are handed over one at a time, in list order, so a Start
+      // at the head of the list is processed before the relative events after it.
+      const events = Array.isArray(frame) ? frame : [frame];
+      if (events.length === 0) return processor.receive(null); // an empty list is invalid
+      events.forEach((event) => processor.receive(event));
     };
 
     // An error is always followed by a close, which handles the retry.
