@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-import { EventLog } from "@/components/EventDebugView";
+import { ClockStatus, EventLog } from "@/components/EventDebugView";
 import { TorchController } from "@/components/TorchController";
 import { VideoOutput } from "@/components/VideoOutput";
 import { useAudioOutput } from "@/hooks/useAudioOutput";
@@ -138,7 +138,7 @@ const CONNECTION_LABELS: Record<ConnectionState, string> = {
   reconnecting: "Connection lost, reconnecting…",
 };
 
-/** Shown while joined: connection state, the image area, captions box, a short log and a Leave button. */
+/** Shown while joined: connection state, the image area, captions box, clock status, a short log and a Leave button. */
 function ConcertView({ image, caption, log, connection, onLeave }: ConcertViewProps) {
   return (
     <View className="concert-content">
@@ -165,6 +165,8 @@ function ConcertView({ image, caption, log, connection, onLeave }: ConcertViewPr
         )}
       </View>
 
+      {/* Only the live server uses the synced clock; connection is null for the test file. */}
+      {connection && <ClockStatus />}
       <EventLog entries={log} />
 
       <Pressable accessibilityRole="button" onPress={onLeave} className="leave-button">

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 
+import { serverNow, subscribeToClock, timeSync } from "@/lib/clientTimeSync";
 import {
   type AssetUris,
   deleteConcertAssets,
@@ -25,6 +27,16 @@ interface Session {
 
 const INVALID_CODE = "Invalid code";
 
+/** The live server is the shared clock; the test file is timed on the phone's own clock. */
+const USE_SERVER_CLOCK = EVENT_SOURCE === "server";
+
+/** Reschedule pending events when an accepted offset moves server time by more than this (the spike's 5 ms). */
+const RESCHEDULE_THRESHOLD_MS = 5;
+
+function createProcessor() {
+  return createEventProcessor({ now: USE_SERVER_CLOCK ? serverNow : Date.now });
+}
+
 /**
  * Connects the event processor to a React screen.
  *
@@ -40,7 +52,7 @@ const INVALID_CODE = "Invalid code";
 export function useEventProcessor() {
   // Passing the function (not calling it) makes React create the processor
   // only once, on first render, instead of on every render.
-  const [processor] = useState(createEventProcessor);
+  const [processor] = useState(createProcessor);
   const [state, setState] = useState(processor.getState);
   const [status, setStatus] = useState<JoinStatus>("idle");
   const [connection, setConnection] = useState<ConnectionState | null>(null);
@@ -57,11 +69,37 @@ export function useEventProcessor() {
   // unsubscribe function, which React calls as the cleanup.
   useEffect(() => processor.subscribe(setState), [processor]);
 
+  // Release held events once the first burst finishes, and keep pending ones
+  // on time when a later burst moves the offset.
+  useEffect(
+    () =>
+      subscribeToClock(({ accepted, shiftMs }) => {
+        // Released even if the first burst failed: events then run on the
+        // phone's clock (and are rescheduled once a later burst succeeds)
+        // rather than never playing while the server's time can't be reached.
+        processor.setClockReady(true);
+        if (accepted && Math.abs(shiftMs) > RESCHEDULE_THRESHOLD_MS) processor.rescheduleTimers();
+      }),
+    [processor],
+  );
+
+  // Coming back to the foreground: timers were paused and the network may
+  // have changed, so the offset may be stale.
+  const isJoined = status === "joined";
+  useEffect(() => {
+    if (!isJoined || !USE_SERVER_CLOCK) return;
+    const subscription = AppState.addEventListener("change", (next) => {
+      if (next === "active") timeSync.syncNow();
+    });
+    return () => subscription.remove();
+  }, [isJoined]);
+
   /** Stops the session but keeps downloaded files, so re-joining doesn't download them again. */
   const stop = useCallback(() => {
     attempt.current += 1;
     session.current?.stop();
     session.current = null;
+    timeSync.stop(); // the last offset is kept, so re-joining starts with it
     processor.reset();
     setStatus("idle");
     setConnection(null);
@@ -94,6 +132,14 @@ export function useEventProcessor() {
       const isCurrent = () => attempt.current === thisAttempt;
       setError(null);
       setStatus("downloading");
+
+      if (USE_SERVER_CLOCK) {
+        // Hold events until the clock is synced. The first burst runs during
+        // the download, so it's normally done before the socket connects.
+        if (!timeSync.isSynced()) processor.setClockReady(false);
+        timeSync.start();
+      }
+
       try {
         const downloaded = await downloadConcertAssets(concert.assetFolder);
         if (!isCurrent()) return;
@@ -106,16 +152,21 @@ export function useEventProcessor() {
           console.warn("Asset download failed", e);
           setError("Couldn't download the concert files. Check your connection and try again.");
         }
-        setStatus("idle");
+        stop();
         return;
       }
 
+      let lastConnection: ConnectionState | null = null;
       session.current =
         EVENT_SOURCE === "testFile"
           ? startTestSession(processor)
           : startServerSession(processor, concert.code, {
               onStateChange: (next) => {
-                if (isCurrent()) setConnection(next);
+                if (!isCurrent()) return;
+                // Reconnected: the network path may have changed, so re-measure.
+                if (next === "connected" && lastConnection === "reconnecting") timeSync.syncNow();
+                lastConnection = next;
+                setConnection(next);
               },
               onInvalidCode: () => {
                 if (!isCurrent()) return;
@@ -134,7 +185,7 @@ export function useEventProcessor() {
   return {
     ...state,
     status,
-    isJoined: status === "joined",
+    isJoined,
     connection,
     error,
     assets,
